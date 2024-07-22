@@ -1,6 +1,6 @@
-using LinearAlgebra 
-using IterativeSolvers   
-using SparseArrays    
+using LinearAlgebra
+using IterativeSolvers
+using SparseArrays
 using MatrixDepot
 using Takums
 using SoftPosit

@@ -31,8 +31,8 @@
     ```
 """
 function stopcrit(A, b, x, tol = 1e-06)
-    T = typeof(A[1,1])
-    r = b - A*x
-    N = infnorm 
-    return N(r) <= T.(tol) * (N(b) + N(A)*N(x)) ? true : false
+	T = typeof(A[1, 1])
+	r = b - A * x
+	N = infnorm
+	return N(r) <= T.(tol) * (N(b) + N(A) * N(x)) ? true : false
 end

@@ -15,26 +15,28 @@ include("configs.jl")
 include("xgesol.jl")
 
 # Run the experiment
-@timev f(x) = xgesol.(x,Ts)
-@timev precomp = f.([905,906])
+@timev f(x) = xgesol.(x, Ts)
+@timev precomp = f.([905, 906])
 @timev results = f.(Ms) # map(f,Ms) better
 
 # Plot and save results
 matrix_data = hcat(results...);
 df = DataFrame(matrix_data', string.(Ts))
 
-avgs = [mean(df[:, i]) for i in 1:ncol(df)]';
+avgs = [mean(df[:, i]) for i = 1:ncol(df)]';
 df_stats = DataFrame(avgs, string.(Ts))
 
-p = plot(title = "Sovling Ax = b", 
-    xlabel = "Matrix #", 
-    ylabel = "infinity Norm", 
-    legend = :topleft, 
-    size = (800, 600), 
-    dpi = 300)
+p = plot(
+	title = "Sovling Ax = b",
+	xlabel = "Matrix #",
+	ylabel = "infinity Norm",
+	legend = :topleft,
+	size = (800, 600),
+	dpi = 300,
+)
 
-for i in 1:ncol(df)
-    plot!(p, 1:nrow(df), df[:,i], label = names(df)[i], marker = :auto)
+for i = 1:ncol(df)
+	plot!(p, 1:nrow(df), df[:, i], label = names(df)[i], marker = :auto)
 end
 display(p)
 savefig("results.png")
