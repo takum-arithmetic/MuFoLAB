@@ -23,10 +23,10 @@ include("xgesol.jl")
 matrix_data = hcat(results...);
 df = DataFrame(matrix_data', string.(Ts))
 
-avgs = [mean(df[:, i]) for i = 1:ncol(df)]';
+avgs = [mean(df[:, i]) for i in 1:ncol(df)]';
 df_stats = DataFrame(avgs, string.(Ts))
 
-p = plot(
+p = plot(;
 	title = "Sovling Ax = b",
 	xlabel = "Matrix #",
 	ylabel = "infinity Norm",
@@ -35,8 +35,8 @@ p = plot(
 	dpi = 300,
 )
 
-for i = 1:ncol(df)
-	plot!(p, 1:nrow(df), df[:, i], label = names(df)[i], marker = :auto)
+for i in 1:ncol(df)
+	plot!(p, 1:nrow(df), df[:, i]; label = names(df)[i], marker = :auto)
 end
 display(p)
 savefig("results.png")

@@ -10,11 +10,9 @@ using BenchmarkTools
 using DataFrames
 using CSV
 
-
 # Local Dependencies
 include("../../common/infnorm.jl")
 include("../../common/stopcrit.jl")
-
 
 # Sparse Matrix Test Suite (see https://sparse.tamu.edu)
 ld = listdata(@pred(10^1 <= n <= 2 * 10^2 && n == m && nnz / n > 10));
