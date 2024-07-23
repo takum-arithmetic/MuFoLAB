@@ -7,7 +7,6 @@ include config.mk
 
 SRC =\
 	common/getab.jl\
-	common/infnorm.jl\
 	common/matnorm.jl\
 	common/maxcols.jl\
 	common/maxrows.jl\

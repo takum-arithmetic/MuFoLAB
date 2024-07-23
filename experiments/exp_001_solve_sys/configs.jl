@@ -11,7 +11,6 @@ using DataFrames
 using CSV
 
 # Local Dependencies
-include("../../common/infnorm.jl")
 include("../../common/stopcrit.jl")
 
 # Sparse Matrix Test Suite (see https://sparse.tamu.edu)
