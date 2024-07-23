@@ -4,7 +4,7 @@ Compare the solutions solving linear systems of equations, $Ax = b$, for various
 In all comparisons, the actual solution is ${\bf x} = (1,1,\dots,1)^\top$.  The infinity norm between the exact 
 and computed solutions is reported.
 
-## Run Experiement
+## Run Experiment
 
 Navigate to 
 
@@ -44,7 +44,7 @@ Navigate to
 ### Test-Suite
 
 We use [SuiteSparse Matrix Collection](https://sparse.tamu.edu) (formerly the University of Florida Matrix Collection).
-The collection currently assigns the `id` where `id ∈ 1:3000`.  The matrices are sparse; however, we cast to FULL.
+The collection currently assigns the `id` where `id ∈ 1:3000`.  The matrices are sparse.
 
 #### Numeric Identifiers
 

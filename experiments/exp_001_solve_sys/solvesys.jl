@@ -6,8 +6,7 @@
     The types of numbers we compare are Takums, SoftPosits, BFloat16s, and 
     Floats.  We use the SuiteSparse Matrix Collection to test the different 
     number types.  The integer ids are the 'official' ident numbers 
-    assigned by the collection. Currently id ∈ 1:3000.  The matrices are 
-    cast to FULL.
+    assigned by the collection. Currently id ∈ 1:3000.
 """
 
 # Local dependencies
@@ -21,13 +20,14 @@ include("xgesol.jl")
 
 # Plot and save results
 matrix_data = hcat(results...);
+
 df = DataFrame(matrix_data', string.(Ts))
 
 avgs = [mean(df[:, i]) for i in 1:ncol(df)]';
 df_stats = DataFrame(avgs, string.(Ts))
 
 p = plot(;
-	title = "Sovling Ax = b",
+	title = "Solving Ax = b",
 	xlabel = "Matrix #",
 	ylabel = "infinity Norm",
 	legend = :topleft,
