@@ -13,9 +13,6 @@ COMMON =\
 EXPERIMENT =\
 	src/solve_direct\
 
-	#src/solve_mixed_iterative_refinement\
-	#src/solve_squeeze\
-
 src/solve_direct.output: src/solve_direct.jl src/Utilities.jl
 
 all: $(EXPERIMENT:=.output)
