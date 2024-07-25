@@ -14,20 +14,20 @@ EXPERIMENT =\
 	#src/solve_mixed_iterative_refinement\
 	#src/solve_squeeze\
 
-all: $(EXPERIMENT:=.w)
+all: $(EXPERIMENT:=.output)
 
-src/solve_direct.w: src/solve_direct.jl src/Utilities.jl
+src/solve_direct.output: src/solve_direct.jl src/Utilities.jl
 
 # each experiment program prints the files it generated to stdout, we store
 # their names in a witness file
-$(EXPERIMENT:=.w):
-	$(JULIA) $(JULIAFLAGS) $(EXPERIMENT:=.jl) > $(EXPERIMENT:=.w)
+$(EXPERIMENT:=.output):
+	$(JULIA) $(JULIAFLAGS) $(@:.output=.jl) > $@
 
 # go over each witness file, and if it exists, remove all files listed in it.
 # Then remove the witness file.
 clean:
-	for w in $(EXPERIMENT:=.w); do if [ -f "$$w" ]; then xargs rm -f < "$$w"; fi; done
-	rm -f $(EXPERIMENT:=.w)
+	for w in $(EXPERIMENT:=.output); do if [ -f "$$w" ]; then xargs rm -f < "$$w"; fi; done
+	rm -f $(EXPERIMENT:=.output)
 
 # use JuliaFormatter to automatically format the code. Given JuliaFormatter
 # does not support tabs for indentation we let it run with an obnoxiously
