@@ -1,6 +1,15 @@
 # See LICENSE file for copyright and license details.
 using JuliaFormatter
 
+# We set the indent to 16 to have 16 blanks for each indentation level,
+# which is easily detected by unexpand(1). We don't want to set it
+# lower as we do not want to unexpand any blanks used for alignment,
+# which is desired.
+#
+# Each line should contain at most 85 characters. We use a heuristic
+# for the common case of 2 indentation levels to expand it by the
+# difference of the common tab (8 characters) and the set indent value
+# such that our large value for indent does not yield short lines.
 format_file(
 	ARGS[1];
 	indent = 16,
