@@ -16,9 +16,11 @@ EXPERIMENT =\
 
 all: $(EXPERIMENT:=.w)
 
+src/solve_direct.w: src/solve_direct.jl src/Utilities.jl
+
 # each experiment program prints the files it generated to stdout, we store
 # their names in a witness file
-$(EXPERIMENT:=.w): $(EXPERIMENT:=.jl) $(COMMON:=.jl)
+$(EXPERIMENT:=.w):
 	$(JULIA) $(JULIAFLAGS) $(EXPERIMENT:=.jl) > $(EXPERIMENT:=.w)
 
 # go over each witness file, and if it exists, remove all files listed in it.
