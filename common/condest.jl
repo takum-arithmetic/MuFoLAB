@@ -10,8 +10,6 @@ Reference
 [1] Cline, A. K., Moler, C. B., Stewart, G. W., & Wilkinson, J. H. (1979). 
 An estimate for the condition number of a matrix. SIAM Journal on 
 Numerical Analysis, 16(2), 368-375.
-
-
 """
 function condest(A::AbstractMatrix{T}; p = Inf) where {T <: AbstractFloat}
         n = size(A, 1)
