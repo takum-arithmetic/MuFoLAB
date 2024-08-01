@@ -5,8 +5,27 @@ using Base.Threads
 using CSV
 using DataFrames
 using LinearAlgebra
-using MatrixDepot
 using SparseArrays
+using Suppressor
+
+@suppress_err begin
+	using MatrixDepot
+end
+
+number_types = [
+	Takum8,
+	Posit8,
+	Takum16,
+	Posit16_1,
+	Posit16,
+	BFloat16,
+	Float16,
+	Takum32,
+	Posit32,
+	Float32,
+	Takum64,
+	Float64,
+]
 
 function sparsecast(t::Type{T}, M::AbstractMatrix) where {T <: AbstractFloat}
 	if typeof(M) <: SparseMatrixCSC

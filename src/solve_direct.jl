@@ -1,10 +1,14 @@
 # See LICENSE file for copyright and license details.
 using BFloat16s
 using LinearAlgebra
-using MatrixDepot
 using SoftPosit
 using SparseArrays
+using Suppressor
 using Takums
+
+@suppress_err begin
+	using MatrixDepot
+end
 
 include("Utilities.jl")
 using .Utilities
@@ -41,25 +45,11 @@ function solve_direct(M::AbstractMatrix, t::Type{T}) where {T <: AbstractFloat}
 	return SolveData(absolute_error)
 end
 
-types = [
-	Takum8,
-	Posit8,
-	Takum16,
-	Posit16_1,
-	Posit16,
-	BFloat16,
-	Float16,
-	Takum32,
-	Posit32,
-	Float32,
-	Takum64,
-	Float64,
-]
 matrix_indices = sort(
 	getfield.(listdata(@pred(10^1 <= n <= 2 * 10^2 && n == m && nnz / n > 10)), :id),
 )
 
-results = Utilities.run_experiment(solve_direct, types, matrix_indices)
+results = Utilities.run_experiment(solve_direct, Utilities.number_types, matrix_indices)
 
 Utilities.write_experiment_csv(
 	"out/solve_direct.csv",
