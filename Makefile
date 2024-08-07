@@ -8,6 +8,7 @@ include config.mk
 
 COMMON =\
 	src/format\
+	src/QR\
 	src/Utilities\
 
 EXPERIMENT =\
