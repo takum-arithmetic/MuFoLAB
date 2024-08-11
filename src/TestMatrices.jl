@@ -14,25 +14,35 @@ export TestMatrix, generate_test_matrices, get_test_matrices
 
 struct TestMatrix
 	name::String
-	M::AbstractMatrix{Float64}
+	M::SparseMatrixCSC{Float64, Int64}
 	m::Int
 	n::Int
+	nnz::Int
 	rank::Int
+	is_symmetric::Bool
 	is_positive_definite::Bool
 end
 
 function TestMatrix(M::AbstractMatrix, name::String)
-	M_derived = AbstractMatrix{Float64}(sparse(M))
+	# test if M is symmetric before type cleanup
+	is_symmetric = isa(M, Symmetric)
 
-	matrix_rank = rank(M_derived)
-	is_positive_definite = isposdef(M_derived)
+	# clean up the matrix type
+	M = SparseMatrixCSC{Float64, Int64}(M)
+
+	# determine the rest using the clean M
+	matrix_rank = rank(M)
+	is_positive_definite = isposdef(M)
+	matrix_nnz = nnz(M)
 
 	return TestMatrix(
 		name,
 		M,
-		M_derived.m,
-		M_derived.n,
+		M.m,
+		M.n,
+		matrix_nnz,
 		matrix_rank,
+		is_symmetric,
 		is_positive_definite,
 	)
 end
