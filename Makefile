@@ -10,6 +10,7 @@ COMMON =\
 	src/format\
 	src/QR\
 	src/TestMatrices\
+	src/TestMatricesGenerator\
 	src/Utilities\
 
 EXPERIMENT =\
