@@ -8,12 +8,10 @@ using DataFrames
 using LinearAlgebra
 using SoftPosit
 using SparseArrays
-using Suppressor
 using Takums
 
-@suppress_err begin
-	using MatrixDepot
-end
+push!(LOAD_PATH, "src/")
+import TestMatrices
 
 number_types = [
 	Takum8,
@@ -30,24 +28,14 @@ number_types = [
 	Float64,
 ]
 
-struct SolveData
+struct SolveMeasurement
 	absolute_error::Float64
-end
-
-function sparsecast(t::Type{T}, M::AbstractMatrix) where {T <: AbstractFloat}
-	if typeof(M) <: SparseMatrixCSC
-		return SparseMatrixCSC{t, Int64}(M)
-	elseif typeof(M) <: Symmetric
-		return Symmetric{t, SparseMatrixCSC{t, Int64}}(M)
-	else
-		throw("Unhandled sparse matrix type")
-	end
 end
 
 function run_experiment(
 	f::Function,
 	types::Vector{DataType},
-	matrix_indices::Vector{Int64},
+	test_matrices::Vector{TestMatrices.TestMatrix},
 	parameters::Any = nothing,
 )
 	# get return type of passed function and generate output matrix
@@ -55,12 +43,24 @@ function run_experiment(
 	if (length(f_return_types) != 1)
 		throw("Experiment function has inconsistent return types")
 	end
-	results = Array{f_return_types[1], 2}(undef, length(types), length(matrix_indices))
+	results = Array{f_return_types[1], 2}(undef, length(types), length(test_matrices))
 
-	@threads for i in 1:length(matrix_indices)
-		M = matrixdepot(sp(matrix_indices[i]))
+	@threads for i in 1:length(test_matrices)
+		t = test_matrices[i]
 		@threads for j in 1:length(types)
-			results[j, i] = f(M, types[j], parameters)
+			println(
+				stderr,
+				"Started $(t.name) for type $(String(nameof(types[j])))",
+			)
+			results[j, i] = f(
+				types[j].(t.M),
+				types[j],
+				parameters,
+			)
+			println(
+				stderr,
+				"Finished $(t.name) for type $(String(nameof(types[j])))",
+			)
 		end
 	end
 
@@ -70,19 +70,19 @@ end
 function write_experiment_csv(
 	file_name::String,
 	types::Vector{DataType},
-	matrix_indices::Vector{Int64},
+	test_matrices::Vector{TestMatrices.TestMatrix},
 	R::AbstractMatrix,
 )
 	# generate array of strings
 	type_names = String.(nameof.(types))
-	matrix_names = mdlist(sp(matrix_indices))
+	matrix_names = (t -> t.name).(test_matrices)
 
 	# generate CSV
 	df = DataFrame(
 		Matrix{typeof(R[1, 1])}(
 			undef,
 			length(type_names),
-			length(matrix_indices) + 1,
+			length(test_matrices) + 1,
 		),
 		:auto,
 	)
@@ -91,7 +91,7 @@ function write_experiment_csv(
 	df[!, 1] = type_names
 
 	# fill the DataFrame with values from R
-	for i in 1:length(matrix_indices)
+	for i in 1:length(test_matrices)
 		df[!, i + 1] = R[:, i]
 	end
 
@@ -113,13 +113,12 @@ struct SolverParameters
 end
 
 function solver_experiment_callback(
-	M::AbstractMatrix,
+	A::SparseMatrixCSC{T, Int64},
 	t::Type{T},
 	parameters::SolverParameters,
 ) where {T <: AbstractFloat}
 	local x
 
-	A = Utilities.sparsecast(t, M)
 	y = ones(t, size(A, 1))
 	b = A * y
 
@@ -134,38 +133,27 @@ function solver_experiment_callback(
 
 	absolute_error = norm(Float64.(y) - Float64.(x), Inf)
 
-	return SolveData(absolute_error)
+	return SolveMeasurement(absolute_error)
 end
 
 function run_solver_experiment(; solver::Function, preconditioner::Union{Function, Nothing})
-	matrix_indices = sort(
-		getfield.(
-			listdata(
-				@pred(
-					10^1 <=
-					n <=
-					2 * 10^2 &&
-					n == m &&
-					nnz / n > 10
-				)
-			),
-			:id,
-		),
-	)
+	test_matrices = TestMatrices.get_test_matrices(:sparse)
+	filter!(t -> (t.m == t.n && t.rank == t.m && t.nnz in 200:1000), test_matrices)
+	test_matrices = test_matrices[1:1]
 
-	results = Utilities.run_experiment(
+	results = run_experiment(
 		solver_experiment_callback,
 		Utilities.number_types,
-		matrix_indices,
+		test_matrices,
 		SolverParameters(solver, preconditioner),
 	)
 
 	experiment_name = chopsuffix(basename(PROGRAM_FILE), ".jl")
 
-	return Utilities.write_experiment_csv(
+	return write_experiment_csv(
 		"out/" * experiment_name * "-absolute_error.csv",
 		number_types,
-		matrix_indices,
+		test_matrices,
 		getfield.(results, :absolute_error),
 	)
 end
