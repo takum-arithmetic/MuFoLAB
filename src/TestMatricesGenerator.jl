@@ -11,9 +11,7 @@ using Suppressor
 end
 
 push!(LOAD_PATH, "src/")
-using TestMatrices
-
-export generate_test_matrices
+import TestMatrices
 
 function generate_test_matrices(
 	file_name::String,
@@ -30,12 +28,15 @@ function generate_test_matrices(
 	matrix_name_list = mdlist(predicate)
 
 	# generate the test matrix array
-	test_matrices = Vector{TestMatrix}()
+	test_matrices = Vector{TestMatrices.TestMatrix}()
 	for (index, matrix_name) in enumerate(matrix_name_list)
 		local t
 
 		try
-			t = TestMatrix(matrixdepot(matrix_name), matrix_name)
+			t = TestMatrices.TestMatrix(
+				matrixdepot(matrix_name),
+				matrix_name,
+			)
 		catch e
 			if isa(e, InexactError)
 				# This exception is thrown when the input

@@ -1,6 +1,7 @@
 # See LICENSE file for copyright and license details.
-include("Utilities.jl")
-using .Utilities
+push!(LOAD_PATH, "src/")
+
+import Utilities
 
 function solve_direct(A::AbstractMatrix, b::AbstractVector)
 	return A \ b

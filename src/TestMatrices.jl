@@ -7,8 +7,6 @@ using LinearAlgebra
 using SparseArrays
 using Suppressor
 
-export TestMatrix, generate_test_matrices, get_test_matrices
-
 struct TestMatrix
 	name::String
 	M::SparseMatrixCSC{Float64, Int64}
