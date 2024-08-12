@@ -7,6 +7,7 @@
 include config.mk
 
 COMMON =\
+	src/Crutches\
 	src/Experiments\
 	src/format\
 	src/QR\
