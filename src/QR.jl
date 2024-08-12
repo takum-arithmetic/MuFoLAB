@@ -4,8 +4,6 @@ module QR
 using LinearAlgebra
 using SparseArrays
 
-export qr_givens
-
 function qr_givens(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
 	# copy A into R
 	R = copy(A)
@@ -95,7 +93,7 @@ function qr_givens(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
 		end
 	end
 
-	return Q', R
+	return Q', UpperTriangular(R)
 end
 
 end
