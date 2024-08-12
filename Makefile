@@ -7,11 +7,11 @@
 include config.mk
 
 COMMON =\
+	src/Experiments\
 	src/format\
 	src/QR\
 	src/TestMatrices\
 	src/TestMatricesGenerator\
-	src/Utilities\
 
 EXPERIMENT =\
 	src/solve_direct\
@@ -23,8 +23,8 @@ GENERATOR =\
 all: $(EXPERIMENT:=.output)
 
 src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl
-src/solve_direct.output: src/solve_direct.jl src/Utilities.jl
-src/solve_qr.output: src/solve_qr.jl src/Utilities.jl src/QR.jl
+src/solve_direct.output: src/solve_direct.jl src/Experiments.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output
+src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output
 
 .jl.format:
 	@# work around JuliaFormatter not supporting tabs for indentation
