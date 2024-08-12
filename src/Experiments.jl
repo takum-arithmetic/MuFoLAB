@@ -1,3 +1,4 @@
+# See LICENSE file for copyright and license details.
 module Experiments
 
 using Base.Threads
@@ -5,6 +6,7 @@ using BFloat16s
 using CSV
 using DataFrames
 using LinearAlgebra
+using Printf
 using SoftPosit
 using SparseArrays
 using Takums
@@ -46,42 +48,156 @@ end
 
 struct ExperimentResults
 	experiment::Experiment
-	measurement::Matrix{AbstractExperimentMeasurement}
+	measurement::Matrix{Union{Nothing, AbstractExperimentMeasurement}}
+end
+
+@enum _MeasurementState pending = 0 processing done
+
+let
+	# export the function name globally
+	global _print_progress
+
+	# we are within the let..end scope, this simulates a static variable
+	last_output_length = 0
+
+	function _print_progress(
+		progress::Matrix{_MeasurementState},
+		number_types::Vector{DataType},
+		test_matrices::Vector{TestMatrices.TestMatrix},
+	)
+		# make a local copy
+		progress = copy(progress)
+
+		# determine the number of completed and total measurements
+		num_done = length(progress[progress .== done])
+		num_total = length(progress)
+
+		# generate a matrix of measurement identifiers ("matrix_name[type_name]")
+		identifiers = [
+			m.name * "[" * String(nameof(t)) * "]" for t in number_types,
+			m in test_matrices
+		]
+
+		# get a list of identifiers that are currently active
+		currently_processing_identifiers =
+			identifiers[progress .== processing]
+
+		# generate output string
+		output = @sprintf "(%03i/%03i)" num_done num_total
+		if length(currently_processing_identifiers) > 0
+			output *= " currently processing:"
+			for id in currently_processing_identifiers
+				output *= " " * id
+			end
+		end
+
+		# move back carriage return, write sufficiently many spaces to
+		# cover the previous output, then another carriage return,
+		# then the output string
+		print(stderr, "\r" * (" "^last_output_length) * "\r" * output)
+
+		# set the last output length for the next iteration
+		return last_output_length = length(output)
+	end
 end
 
 function ExperimentResults(experiment::Experiment)
-	results = Matrix{AbstractExperimentMeasurement}(
-		undef,
+	# this is where we store the measurements
+	measurement = Matrix{Union{Nothing, AbstractExperimentMeasurement}}(
+		nothing,
 		length(experiment.number_types),
 		length(experiment.test_matrices),
 	)
 
+	# this is a matrix in which the threads mark their progress
+	progress = _MeasurementState.(zeros(Integer, size(measurement)))
+	print_lock = ReentrantLock()
+
+	# do all the desired measurements
 	@threads for i in 1:length(experiment.test_matrices)
 		t = experiment.test_matrices[i]
 		@threads for j in 1:length(experiment.number_types)
-			println(
-				stderr,
-				"Started $(t.name) for type $(String(nameof(experiment.number_types[j])))",
-			)
+			# set the current problem to active
+			progress[j, i] = processing
 
-			# call the main get_measurement function identified
-			# by the type of parameters
-			results[j, i] = get_measurement(
-				experiment.parameters,
-				experiment.number_types[j].(t.M),
-			)
-			println(
-				stderr,
-				"Finished $(t.name) for type $(String(nameof(experiment.number_types[j])))",
-			)
+			# print the current status when the lock is not
+			# held, otherwise just keep going
+			if trylock(print_lock)
+				_print_progress(
+					progress,
+					experiment.number_types,
+					experiment.test_matrices,
+				)
+				unlock(print_lock)
+			end
+
+			# cast the test matrix to the test type and check
+			# if any entries are Inf or NaN
+			test_matrix = experiment.number_types[j].(t.M)
+
+			if !all(isfinite, test_matrix)
+				measurement[j, i] = nothing
+			else
+				# call the main get_measurement function identified
+				# by the type of parameters
+				measurement[j, i] = get_measurement(
+					experiment.parameters,
+					experiment.number_types[j].(
+						t.M
+					),
+				)
+			end
+
+			# set the current problem to done
+			progress[j, i] = done
+			if trylock(print_lock)
+				_print_progress(
+					progress,
+					experiment.number_types,
+					experiment.test_matrices,
+				)
+				unlock(print_lock)
+			end
 		end
 	end
 
-	return ExperimentResults(experiment, results)
+	# print a new line
+	print(stderr, "\n")
+
+	return ExperimentResults(experiment, measurement)
 end
 
 function write_experiment_results(experiment_results::ExperimentResults)
-	for field_name in fieldnames(typeof(experiment_results.measurement[1, 1]))
+	# the measurement matrix contains a mix of "nothing" and the used
+	# subtype of AbstractExperimentMeasurement. The first thing we do
+	# is filter out the nothing and then check if it's homogeneously
+	# one type.
+	local measurement_type
+	local measurement_type_instance
+
+	valid_measurements =
+		experiment_results.measurement[experiment_results.measurement .!= nothing]
+
+	if length(valid_measurements) == 0
+		# we only have invalid measurements
+		throw(ArgumentError("All measurements are invalid"))
+	else
+		# check if all valid measurements are of one type
+		measurement_types = union(typeof.(valid_measurements))
+
+		if length(measurement_types) != 1
+			throw(
+				ArgumentError(
+					"Measurement types are not homogeneous",
+				),
+			)
+		else
+			measurement_type = measurement_types[1]
+			measurement_type_instance = valid_measurements[1]
+		end
+	end
+
+	for field_name in fieldnames(measurement_type)
 		# get underlying experiment
 		experiment = experiment_results.experiment
 
@@ -94,10 +210,7 @@ function write_experiment_results(experiment_results::ExperimentResults)
 			Matrix{
 				typeof(
 					getfield(
-						experiment_results.measurement[
-							1,
-							1,
-						],
+						measurement_type_instance,
 						field_name,
 					),
 				),
@@ -114,14 +227,14 @@ function write_experiment_results(experiment_results::ExperimentResults)
 
 		# fill the DataFrame with values from R
 		for i in 1:length(experiment.test_matrices)
-			df[!, i + 1] =
-				getfield.(
-					experiment_results.measurement[
-						:,
-						i,
-					],
-					field_name,
-				)
+			df[!, i + 1] = [
+				if m == nothing
+					NaN
+				else
+					getfield(m, field_name)
+				end for m in
+				experiment_results.measurement[:, i]
+			]
 		end
 
 		# Set the column names as the matrix names
@@ -170,7 +283,7 @@ function get_measurement(
 		end
 		x = parameters.solver(A, b)
 	catch
-		x = fill(NaN, size(A, 1))
+		return nothing
 	end
 
 	absolute_error = norm(Float64.(y) - Float64.(x), Inf)
