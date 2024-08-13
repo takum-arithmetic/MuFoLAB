@@ -13,6 +13,8 @@ struct TestMatrix
 	m::Int
 	n::Int
 	nnz::Int
+	minimum::Float64
+	maximum::Float64
 	rank::Int
 	is_symmetric::Bool
 	is_positive_definite::Bool
@@ -36,6 +38,8 @@ function TestMatrix(M::AbstractMatrix, name::String)
 		M.m,
 		M.n,
 		matrix_nnz,
+		minimum(M),
+		maximum(M),
 		matrix_rank,
 		is_symmetric,
 		is_positive_definite,
