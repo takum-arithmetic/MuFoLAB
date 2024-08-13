@@ -1,7 +1,8 @@
 # Customize below to fit your system
 
 # flags
-JULIAFLAGS = --threads=auto
+JULIA_FLAGS        = --threads=auto
+JULIA_SCRIPT_FLAGS = --reduced-test-data
 
 # tools
 JULIA = julia

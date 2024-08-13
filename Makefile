@@ -22,17 +22,17 @@ GENERATOR =\
 
 all: $(EXPERIMENT:=.output)
 
-src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl
-src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output
+src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl config.mk Makefile
+src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
 
 .jl.format:
 	@# work around JuliaFormatter not supporting tabs for indentation
 	@# by unexpanding a very wide 16-blank-indent
-	$(JULIA) $(JULIAFLAGS) "src/format.jl" "$<" && unexpand -t 16 "$<" > "$<.temp" && mv -f "$<.temp" "$<" && touch "$@"
+	$(JULIA) $(JULIA_FLAGS) -- "src/format.jl" "$<" && unexpand -t 16 "$<" > "$<.temp" && mv -f "$<.temp" "$<" && touch "$@"
 
 .jl.output:
 	@# experiments print a list of output files, store it an output witness
-	$(JULIA) $(JULIAFLAGS) "$<" > "$@.temp" && mv -f "$@.temp" "$@"
+	$(JULIA) $(JULIA_FLAGS) -- "$<" $(JULIA_SCRIPT_FLAGS) > "$@.temp" && mv -f "$@.temp" "$@"
 
 clean:
 	@# use the output witnesses to clean up the output files, except

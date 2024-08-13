@@ -9,14 +9,10 @@ import TestMatrices
 
 function solve_qr(A::AbstractMatrix, b::AbstractVector)
 	Q, R = QR.qr_givens(A)
-	Q_full = Q * spdiagm(ones(typeof(A[1,1]), (size(A, 1))))
+	Q_full = Q * spdiagm(ones(typeof(A[1, 1]), (size(A, 1))))
 	z = Q_full' * b
 	return R \ z
 end
-
-# TODO
-test_matrices = TestMatrices.get_test_matrices(:sparse)
-filter!(t -> (t.m == t.n && t.rank == t.m && t.nnz in 200:1000), test_matrices)
 
 write_experiment_results(
 	ExperimentResults(
@@ -26,7 +22,14 @@ write_experiment_results(
 				preconditioner = nothing,
 			),
 			number_types = Experiments.all_number_types,
-			test_matrices = test_matrices,
+			test_matrices = TestMatrices.get_test_matrices(
+				:sparse;
+				filter_function = t -> (
+					# quadratic and full rank
+					t.m == t.n &&
+					t.rank == t.m
+				),
+			),
 		),
 	),
 )

@@ -42,14 +42,31 @@ function TestMatrix(M::AbstractMatrix, name::String)
 	)
 end
 
-function get_test_matrices(type::Symbol)
+function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Function} = nothing)
 	if type == :sparse
 		array_file = "out/sparse_test_matrices.jld2"
 	else
 		throw(ArgumentError("The TestMatrix array type must be :sparse"))
 	end
 
-	return load(array_file, "test_matrices")
+	# load test matrices from the file
+	test_matrices = load(array_file, "test_matrices")
+
+	# filter the test matrices
+	if filter_function != nothing
+		filter!(filter_function, test_matrices)
+	end
+
+	# honour the request for reduced test data
+	if "--reduced-test-data" in ARGS
+		# obtain matrices with reasonable size
+		filter!(t -> (t.nnz in 100:500), test_matrices)
+
+		# get the first 5
+		test_matrices = test_matrices[1:min(5, end)]
+	end
+
+	return test_matrices
 end
 
 end
