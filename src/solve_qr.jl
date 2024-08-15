@@ -8,10 +8,10 @@ import QR
 import TestMatrices
 
 function solve_qr(A::AbstractMatrix, b::AbstractVector)
-	Q, R = QR.qr_givens(A)
+	Q, R, permutation, inverse_permutation = QR.qr_givens(A)
 	Q_full = Q * spdiagm(ones(typeof(A[1, 1]), (size(A, 1))))
-	z = Q_full' * b
-	return R \ z
+	z = Q_full' * b[permutation]
+	return (R \ z)[inverse_permutation]
 end
 
 write_experiment_results(
