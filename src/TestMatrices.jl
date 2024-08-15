@@ -13,8 +13,8 @@ struct TestMatrix
 	m::Int
 	n::Int
 	nnz::Int
-	minimum::Float64
-	maximum::Float64
+	absolute_minimum::Float64
+	absolute_maximum::Float64
 	rank::Int
 	is_symmetric::Bool
 	is_positive_definite::Bool
@@ -32,14 +32,17 @@ function TestMatrix(M::AbstractMatrix, name::String)
 	is_positive_definite = isposdef(M)
 	matrix_nnz = nnz(M)
 
+	# determine absolute matrix for absolute minimum and maximum
+	M_abs = abs.(M)
+
 	return TestMatrix(
 		name,
 		M,
 		M.m,
 		M.n,
 		matrix_nnz,
-		minimum(M),
-		maximum(M),
+		minimum(M_abs[M_abs .!= 0]),
+		maximum(M_abs),
 		matrix_rank,
 		is_symmetric,
 		is_positive_definite,
