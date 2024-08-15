@@ -24,6 +24,11 @@ function Base.:(^)(x::AbstractPosit, y::Integer)
 	end
 end
 
+# also fix posit type promotion
+Base.promote_rule(::Type{Float16}, ::Type{<:AbstractPosit}) = Float16
+Base.promote_rule(::Type{Float32}, ::Type{<:AbstractPosit}) = Float32
+Base.promote_rule(::Type{Float64}, ::Type{<:AbstractPosit}) = Float64
+
 # BFloat16s defines truncation to Int, whereas it should be more generally
 # defined to be Integer
 Base.trunc(::Type{Integer}, f::BFloat16) = Base.trunc(Int, f)
