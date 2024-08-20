@@ -11,6 +11,7 @@ COMMON =\
 	src/Experiments\
 	src/format\
 	src/QR\
+	src/LU\
 	src/TestMatrices\
 	src/TestMatricesGenerator\
 
