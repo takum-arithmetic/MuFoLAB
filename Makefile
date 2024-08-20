@@ -16,6 +16,7 @@ COMMON =\
 	src/TestMatricesGenerator\
 
 EXPERIMENT =\
+	src/solve_lu\
 	src/solve_qr\
 
 GENERATOR =\
@@ -24,6 +25,7 @@ GENERATOR =\
 all: $(EXPERIMENT:=.output)
 
 src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl config.mk Makefile
+src/solve_lu.output: src/solve_lu.jl src/Experiments.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
 src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
 
 .jl.format:

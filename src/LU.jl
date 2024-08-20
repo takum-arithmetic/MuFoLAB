@@ -5,29 +5,38 @@ using LinearAlgebra
 using SparseArrays
 
 function lu(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
+	# determine full pivotisation (rows and columns) using
+	# UMFPACK's lu decomposer and the matrix casted to Float64
+	lud = LinearAlgebra.lu(Float64.(A))
+	permutation_row = lud.p
+	permutation_col = lud.q
+
+	# we now run the LU decomposition without pivotisation on PAQ,
+	# where P is the row permutation and Q is the column permutation,
+	# given by construction we know that (PAQ)[j,j] != for all j in 1:n
+	A = A[permutation_row, permutation_col]
+
+	# Determine n
 	n = size(A, 1)
-	P = sparse(I, n, n)
-	L = spzeros(T, n, n)
+
+	# Initialise L as the sparse identity matrix
+	L = spdiagm(ones(T, n))
+
+	# Initialise U as an empty sparse matrix
 	U = spzeros(T, n, n)
-	for k in 1:n
+
+	# Iterate over all columns
+	for j in 1:n
 		x =
-			[L[:, 1:(k - 1)] [
-				zeros(k - 1, n - k + 1)
-				sparse(I, n - k + 1, n - k + 1)
-			]] \ (P * A[:, k])
-		U[1:(k - 1), k] = x[1:(k - 1)]
-		a = maximum(abs.(x[k:n]))
-		i = argmax(abs.(x[k:n]))
-		i = i + k - 1
-		L[[i k], :] = L[[k i], :]
-		P[[i k], :] = P[[k i], :]
-		x[[i k]] = x[[k i]]
-		U[k, k] = x[k]
-		L[k, k] = 1
-		L[(k + 1):n, k] = x[(k + 1):n] / x[k]
+			[L[:, 1:(j - 1)] [
+				zeros(j - 1, n - j + 1)
+				sparse(I, n - j + 1, n - j + 1)
+			]] \ A[:, j]
+		U[1:j, j] = x[1:j]
+		L[(j + 1):n, j] = x[(j + 1):n] ./ x[j]
 	end
 
-	return L, U, P
+	return LowerTriangular(L), UpperTriangular(U), permutation_row, permutation_col
 end
 
 end
