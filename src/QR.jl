@@ -2,16 +2,17 @@
 module QR
 
 using LinearAlgebra
-using Metis
 using SparseArrays
 
 function qr(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
 	# determine fill-reducing permutation (rows and columns) using
-	# Metis and the trivial symmetrisation A+A'
-	permutation, inverse_permutation = Metis.permutation(A + A')
+	# SuiteSparse's SPQR qr decomposition and the matrix casted to Float64
+	qrd = LinearAlgebra.qr(Float64.(A))
+	permutation_row = qrd.prow
+	permutation_col = qrd.pcol
 
 	# copy permuted A into R
-	R = copy(A[permutation, permutation])
+	R = copy(A[permutation_row, permutation_col])
 
 	# generate empty vector of givens rotations
 	Q = LinearAlgebra.Rotation{T}([])
@@ -47,7 +48,7 @@ function qr(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
 
 	dropzeros!(R)
 
-	return Q', UpperTriangular(R), permutation, inverse_permutation
+	return Q', UpperTriangular(R), permutation_row, permutation_col
 end
 
 end
