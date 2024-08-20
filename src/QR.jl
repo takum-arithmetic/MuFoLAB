@@ -5,7 +5,7 @@ using LinearAlgebra
 using Metis
 using SparseArrays
 
-function qr_givens(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
+function qr(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
 	# determine fill-reducing permutation (rows and columns) using
 	# Metis and the trivial symmetrisation A+A'
 	permutation, inverse_permutation = Metis.permutation(A + A')
