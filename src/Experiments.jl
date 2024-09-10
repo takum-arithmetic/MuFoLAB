@@ -26,7 +26,6 @@ all_number_types = [
 	Takum8,
 	Posit8,
 	Takum16,
-	Posit16_1,
 	Posit16,
 	BFloat16,
 	Float16,
