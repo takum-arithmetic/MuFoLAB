@@ -132,11 +132,10 @@ function ExperimentResults(experiment::Experiment)
 				unlock(print_lock)
 			end
 
-			# cast the test matrix to the test type and check
-			# if any entries are Inf or NaN
-			test_matrix = experiment.number_types[j].(t.M)
 
-			if !all(isfinite, test_matrix)
+			if t.absolute_minimum < floatmin(experiment.number_types[j]) ||
+			   t.absolute_maximum > floatmax(experiment.number_types[j])
+				# some matrix entries are out of bounds
 				measurement[j, i] = nothing
 			else
 				# call the main get_measurement function identified
@@ -216,29 +215,29 @@ function write_experiment_results(experiment_results::ExperimentResults)
 				),
 			}(
 				undef,
-				length(type_names),
-				length(experiment.test_matrices) + 1,
+				length(experiment.test_matrices),
+				length(type_names) + 1,
 			),
 			:auto,
 		)
 
-		# assign the first column to be the type names
-		df[!, 1] = type_names
+		# assign the first column to be the matrix names
+		df[!, 1] = matrix_names
 
 		# fill the DataFrame with values from R
-		for i in 1:length(experiment.test_matrices)
+		for i in 1:length(type_names)
 			df[!, i + 1] = [
-				if m == nothing
+				if m == nothing || isnan(getfield(m, field_name))
 					NaN
 				else
 					getfield(m, field_name)
 				end for m in
-				experiment_results.measurement[:, i]
+				experiment_results.measurement[i, :]
 			]
 		end
 
-		# Set the column names as the matrix names
-		rename!(df, [Symbol("type\\matrix"); Symbol.(matrix_names)])
+		# Set the row names as the matrix names
+		rename!(df, [Symbol("matrix\\type"); Symbol.(type_names)])
 
 		experiment_name = chopsuffix(basename(PROGRAM_FILE), ".jl")
 
