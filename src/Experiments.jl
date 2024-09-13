@@ -5,8 +5,10 @@ using Base.Threads
 using BFloat16s
 using CSV
 using DataFrames
+using Float128Conversions
 using LinearAlgebra
 using Printf
+using Quadmath
 using SoftPosit
 using SparseArrays
 using Takums
@@ -141,9 +143,8 @@ function ExperimentResults(experiment::Experiment)
 				# by the type of parameters
 				measurement[j, i] = get_measurement(
 					experiment.parameters,
-					experiment.number_types[j].(
-						t.M
-					),
+					experiment.number_types[j],
+					t.M
 				)
 			end
 
@@ -269,12 +270,21 @@ end
 
 function get_measurement(
 	parameters::SolverExperimentParameters,
-	A::SparseMatrixCSC{T, Int64},
+	::Type{T},
+	A::SparseMatrixCSC{Float64, Int64}
 ) where {T <: AbstractFloat}
 	local x
 
-	y = ones(T, size(A, 1))
-	b = A * y
+	# Generate right side b such that the solution is (1,...,1).
+	# We compute b in full precision and only then reduce it
+	# to the target type
+	y_full = ones(Float128, size(A, 1))
+	b_full = Float128.(A) * y_full
+	y = T.(y_full)
+	b = T.(b_full)
+
+	# Overwrite the matrix with its reduced form
+	A = T.(A)
 
 	try
 		if parameters.preconditioner != nothing
@@ -285,7 +295,8 @@ function get_measurement(
 		return nothing
 	end
 
-	absolute_error = norm(Float64.(y) - Float64.(x), Inf)
+	# compute error by casting the result to float128
+	absolute_error = Float64(norm(y_full - Float128.(x), Inf))
 
 	return SolverExperimentMeasurement(absolute_error)
 end
