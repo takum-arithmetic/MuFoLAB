@@ -67,10 +67,10 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 	# honour the request for reduced test data
 	if "--reduced-test-data" in ARGS
 		# obtain matrices with reasonable size
-		filter!(t -> (t.nnz in 100:500), test_matrices)
+		filter!(t -> (t.nnz in 100:2000), test_matrices)
 
-		# get the first 5
-		test_matrices = test_matrices[1:min(5, end)]
+		# get the first 200
+		test_matrices = test_matrices[1:min(200, end)]
 	end
 
 	return test_matrices
