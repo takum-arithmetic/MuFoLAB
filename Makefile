@@ -42,6 +42,7 @@ clean:
 	@# use the output witnesses to clean up the output files, except
 	@# those from the generators
 	for w in $(EXPERIMENT:=.output); do if [ -f "$$w" ]; then xargs rm -f < "$$w"; fi; done
+	for d in $(EXPERIMENT); do if [ -d "`basename "$$d"`" ]; then rmdir "out/`basename "$$d"`"; fi; done
 	rm -f $(EXPERIMENT:=.output) $(EXPERIMENT:=.output.temp)
 	rm -f $(COMMON:=.format) $(EXPERIMENT:=.format)
 

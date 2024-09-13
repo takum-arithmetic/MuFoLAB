@@ -144,7 +144,7 @@ function ExperimentResults(experiment::Experiment)
 				measurement[j, i] = get_measurement(
 					experiment.parameters,
 					experiment.number_types[j],
-					t.M
+					t.M,
 				)
 			end
 
@@ -240,20 +240,22 @@ function write_experiment_results(experiment_results::ExperimentResults)
 		# Set the column names as the matrix names
 		rename!(df, [Symbol("type\\matrix"); Symbol.(matrix_names)])
 
-		# generate file name
 		experiment_name = chopsuffix(basename(PROGRAM_FILE), ".jl")
-		file_name =
-			"out/" *
-			experiment_name *
-			"-" *
-			String(field_name) *
-			".csv"
+
+		# create output directory
+		directory_name = "out/" * experiment_name
+		if !(isdir(directory_name))
+			mkdir(directory_name)
+		end
+
+		# generate file name
+		file_name = directory_name * "/" * String(field_name) * ".csv"
 
 		# write the DataFrame to the target file
 		CSV.write(file_name, df)
 
 		# print the written file name to standard output for the witness file
-		return println(file_name)
+		println(file_name)
 	end
 end
 
@@ -265,13 +267,45 @@ end
 end
 
 struct SolverExperimentMeasurement <: AbstractExperimentMeasurement
-	absolute_error::Float64
+	absolute_error::Float128
+	relative_error::Float128
+	logarithmic_relative_error::Float128
+end
+
+function get_logarithmic_relative_error(approx::AbstractVector, exact::AbstractVector)
+	# Gustafson defines the log-rel-error as
+	#
+	#	relErr(approx, exact) = {
+	#		NaR	     | sgn(approx) != sgn(exact)
+	#		|ln(approx/exact)|   | otherwise
+	#	}
+	#
+	# For the extension to vectors, we have to incorporate the signs
+	# in a way. Given one can pull in the ||exact|| in the relative error
+	# term as
+	#
+	#	|| (approx - exact) / ||exact|| ||,
+	#
+	# we also do it element-wise here: First check the signs
+	# of all entries for inconsistencies; this also catches the cases
+	# where either entry is zero and the other isn't.
+	# If there are any, return NaN immediately.
+	if sign.(approx) != sign.(exact)
+		return NaN
+	end
+
+	# All entries match in sign. Compute ln(approx/exact) elementwise
+	# for the other entries and return the relative error as the norm
+	# of this vector. Set 0/0=1 by convention.
+	zero_log(a, b) = (iszero(a) && iszero(b)) ? zero(typeof(a)) : log(a / b)
+
+	return norm([zero_log(approx[i], exact[i]) for i in 1:length(exact)], 2)
 end
 
 function get_measurement(
 	parameters::SolverExperimentParameters,
 	::Type{T},
-	A::SparseMatrixCSC{Float64, Int64}
+	A::SparseMatrixCSC{Float64, Int64},
 ) where {T <: AbstractFloat}
 	local x
 
@@ -295,10 +329,20 @@ function get_measurement(
 		return nothing
 	end
 
-	# compute error by casting the result to float128
-	absolute_error = Float64(norm(y_full - Float128.(x), Inf))
+	# compute errors
+	exact = y_full
+	approx = Float128.(x)
+	err = exact - approx
 
-	return SolverExperimentMeasurement(absolute_error)
+	absolute_error = norm(err, 2)
+	relative_error = norm(err, 2) / norm(exact, 2)
+	logarithmic_relative_error = get_logarithmic_relative_error(approx, exact)
+
+	return SolverExperimentMeasurement(
+		absolute_error,
+		relative_error,
+		logarithmic_relative_error,
+	)
 end
 
 end
