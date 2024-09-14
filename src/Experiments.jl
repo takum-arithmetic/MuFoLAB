@@ -117,6 +117,7 @@ function ExperimentResults(experiment::Experiment)
 	# do all the desired measurements
 	@threads for i in 1:length(experiment.test_matrices)
 		t = experiment.test_matrices[i]
+		M = Float128.(t.M)
 		@threads for j in 1:length(experiment.number_types)
 			# set the current problem to active
 			progress[j, i] = processing
@@ -143,7 +144,7 @@ function ExperimentResults(experiment::Experiment)
 				measurement[j, i] = get_measurement(
 					experiment.parameters,
 					experiment.number_types[j],
-					t.M,
+					M,
 				)
 			end
 
@@ -304,33 +305,32 @@ end
 function get_measurement(
 	parameters::SolverExperimentParameters,
 	::Type{T},
-	A::SparseMatrixCSC{Float64, Int64},
+	A::SparseMatrixCSC{Float128, Int64},
 ) where {T <: AbstractFloat}
-	local x
+	local x, x_approx
 
 	# Generate right side b such that the solution is (1,...,1).
 	# We compute b in full precision and only then reduce it
 	# to the target type
-	y_full = ones(Float128, size(A, 1))
-	b_full = Float128.(A) * y_full
-	y = T.(y_full)
-	b = T.(b_full)
+	x = ones(Float128, size(A, 1))
+	b = A * x
+	b_approx = T.(b)
 
 	# Overwrite the matrix with its reduced form
-	A = T.(A)
+	A_approx = T.(A)
 
 	try
 		if parameters.preconditioner != nothing
-			A, b = parameters.preconditioner(A, b)
+			A_approx, b_approx = parameters.preconditioner(A_approx, b_approx)
 		end
-		x = parameters.solver(A, b)
+		x_approx = parameters.solver(A_approx, b_approx)
 	catch
 		return nothing
 	end
 
 	# compute errors
-	exact = y_full
-	approx = Float128.(x)
+	exact = x
+	approx = Float128.(x_approx)
 	err = exact - approx
 
 	absolute_error = norm(err, 2)
