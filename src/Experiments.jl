@@ -17,11 +17,13 @@ push!(LOAD_PATH, "src/")
 import TestMatrices
 
 export AbstractExperimentParameters,
+	AbstractExperimentPreparation,
 	AbstractExperimentMeasurement,
 	Experiment,
 	ExperimentResults,
 	write_experiment_results,
 	SolverExperimentParameters,
+	SolverExperimentPreparation,
 	SolverExperimentMeasurement
 
 all_number_types = [
@@ -39,6 +41,7 @@ all_number_types = [
 ]
 
 abstract type AbstractExperimentParameters end
+abstract type AbstractExperimentPreparation end
 abstract type AbstractExperimentMeasurement end
 
 @kwdef struct Experiment
@@ -117,7 +120,11 @@ function ExperimentResults(experiment::Experiment)
 	# do all the desired measurements
 	@threads for i in 1:length(experiment.test_matrices)
 		t = experiment.test_matrices[i]
-		M = Float128.(t.M)
+
+		# run the preparation function that computes any general
+		# things that do not change with each number type
+		preparation = get_preparation(experiment.parameters, t.M)
+
 		@threads for j in 1:length(experiment.number_types)
 			# set the current problem to active
 			progress[j, i] = processing
@@ -133,18 +140,21 @@ function ExperimentResults(experiment::Experiment)
 				unlock(print_lock)
 			end
 
-
-			if t.absolute_minimum < floatmin(experiment.number_types[j]) ||
-			   t.absolute_maximum > floatmax(experiment.number_types[j])
+			if t.absolute_minimum <
+			   floatmin(experiment.number_types[j]) ||
+			   t.absolute_maximum >
+			   floatmax(experiment.number_types[j])
 				# some matrix entries are out of bounds
 				measurement[j, i] = nothing
 			else
 				# call the main get_measurement function identified
-				# by the type of parameters
+				# by the type of parameters, passing in the
+				# prepared data
 				measurement[j, i] = get_measurement(
 					experiment.parameters,
 					experiment.number_types[j],
-					M,
+					t.M,
+					preparation,
 				)
 			end
 
@@ -228,7 +238,8 @@ function write_experiment_results(experiment_results::ExperimentResults)
 		# fill the DataFrame with values from R
 		for i in 1:length(type_names)
 			df[!, i + 1] = [
-				if m == nothing || isnan(getfield(m, field_name))
+				if m == nothing ||
+				   isnan(getfield(m, field_name))
 					NaN
 				else
 					getfield(m, field_name)
@@ -262,8 +273,42 @@ end
 # the solver experiments compare the solutions of linear systems of equations
 # Ax = b via the infinity norm.
 @kwdef struct SolverExperimentParameters <: AbstractExperimentParameters
+	get_row_and_column_permutations::Union{Nothing, Function}
 	solver::Function
 	preconditioner::Union{Nothing, Function}
+end
+
+@kwdef struct SolverExperimentPreparation <: AbstractExperimentPreparation
+	x_exact::Vector{Float128}
+	b_exact::Vector{Float128}
+	permutation_rows::Union{Nothing, Vector{Int64}}
+	permutation_columns::Union{Nothing, Vector{Int64}}
+end
+
+function get_preparation(parameters::SolverExperimentParameters, A::SparseMatrixCSC{Float64, Int64})
+	# determine the exact solution x and right-hand-side b in
+	# 128 bit precision. We set the desired solution x to be
+	# (1,...,1).
+	x_exact = ones(Float128, size(A, 1))
+	b_exact = Float128.(A) * x_exact
+
+	# get the row and column permutations via the parameter function
+	local permuation_rows, permutation_columns
+
+	if parameters.get_row_and_column_permutations != nothing
+		permutation_rows, permutation_columns =
+			parameters.get_row_and_column_permutations(A)
+	else
+		permutation_rows = nothing
+		permutation_columns = nothing
+	end
+
+	return SolverExperimentPreparation(;
+		x_exact = x_exact,
+		b_exact = b_exact,
+		permutation_rows = permutation_rows,
+		permutation_columns = permutation_columns,
+	)
 end
 
 struct SolverExperimentMeasurement <: AbstractExperimentMeasurement
@@ -305,31 +350,30 @@ end
 function get_measurement(
 	parameters::SolverExperimentParameters,
 	::Type{T},
-	A::SparseMatrixCSC{Float128, Int64},
+	A::SparseMatrixCSC{Float64, Int64},
+	preparation::SolverExperimentPreparation,
 ) where {T <: AbstractFloat}
-	local x, x_approx
+	local x_approx
 
-	# Generate right side b such that the solution is (1,...,1).
-	# We compute b in full precision and only then reduce it
-	# to the target type
-	x = ones(Float128, size(A, 1))
-	b = A * x
-	b_approx = T.(b)
-
-	# Overwrite the matrix with its reduced form
+	# reduce the exact right-hand-side b and the given matrix to
+	# the target type
+	b_approx = T.(preparation.b_exact)
 	A_approx = T.(A)
 
 	try
 		if parameters.preconditioner != nothing
-			A_approx, b_approx = parameters.preconditioner(A_approx, b_approx)
+			A_approx, b_approx = parameters.preconditioner(
+				A_approx,
+				b_approx,
+			)
 		end
-		x_approx = parameters.solver(A_approx, b_approx)
+		x_approx = parameters.solver(A_approx, b_approx, preparation)
 	catch
 		return nothing
 	end
 
 	# compute errors
-	exact = x
+	exact = preparation.x_exact
 	approx = Float128.(x_approx)
 	err = exact - approx
 

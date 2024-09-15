@@ -5,19 +5,13 @@ using LinearAlgebra
 using SparseArrays
 
 function qr(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
-	# determine fill-reducing permutation (rows and columns) using
-	# SuiteSparse's SPQR qr decomposition and the matrix casted to Float64
-	qrd = LinearAlgebra.qr(Float64.(A))
-	permutation_row = qrd.prow
-	permutation_col = qrd.pcol
-
-	# copy permuted A into R
-	R = copy(A[permutation_row, permutation_col])
+	# copy A into R
+	R = copy(A)
 
 	# generate empty vector of givens rotations
 	Q = LinearAlgebra.Rotation{T}([])
 
-	# iterate over all columns of the permuted A (using our "copy" R)
+	# iterate over all columns of A (using our copy R)
 	for j in 1:(R.n)
 		# non-zero entries in the column below the diagonal
 		nonzero_indices = filter(ind -> (ind > j), R[:, j].nzind)
@@ -48,7 +42,7 @@ function qr(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
 
 	dropzeros!(R)
 
-	return Q', UpperTriangular(R), permutation_row, permutation_col
+	return Q', UpperTriangular(R)
 end
 
 end
