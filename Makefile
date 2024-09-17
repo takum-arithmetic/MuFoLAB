@@ -2,7 +2,7 @@
 # Takum Linear Algebra Benchmarks
 .POSIX:
 .SUFFIXES:
-.SUFFIXES: .format .jl .output
+.SUFFIXES: .format .jl .output .output_sorted
 
 include config.mk
 
@@ -13,6 +13,7 @@ COMMON =\
 	src/format\
 	src/QR\
 	src/LU\
+	src/sort_csv\
 	src/TestMatrices\
 	src/TestMatricesGenerator\
 
@@ -23,11 +24,15 @@ EXPERIMENT =\
 GENERATOR =\
 	src/generate_sparse_test_matrices\
 
-all: $(EXPERIMENT:=.output)
+all: $(EXPERIMENT:=.output_sorted)
 
-src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl config.mk Makefile
-src/solve_lu.output: src/solve_lu.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
-src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/Float128Conversions.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
+src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl #config.mk Makefile
+
+src/solve_lu.output: src/solve_lu.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output #config.mk Makefile
+src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/Float128Conversions.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output #config.mk Makefile
+
+src/solve_qr.output_sorted: src/solve_qr.output src/sort_csv.jl
+src/solve_lu.output_sorted: src/solve_lu.output src/sort_csv.jl
 
 .jl.format:
 	@# work around JuliaFormatter not supporting tabs for indentation
@@ -38,12 +43,19 @@ src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/Float128Conversions.
 	@# experiments print a list of output files, store it an output witness
 	$(JULIA) $(JULIA_FLAGS) -- "$<" $(JULIA_SCRIPT_FLAGS) > "$@.temp" && mv -f "$@.temp" "$@"
 
+.output.output_sorted:
+	@# use the output witness files and process each .csv file contained
+	@# into a .sorted.csv file, outputting another witness file
+	@# (.output_sorted) containing the file names
+	$(JULIA) $(JULIA_FLAGS) -- "src/sort_csv.jl" "$<" > "$@.temp" && mv -f "$@.temp" "$@"
+
 clean:
 	@# use the output witnesses to clean up the output files, except
 	@# those from the generators
 	for w in $(EXPERIMENT:=.output); do if [ -f "$$w" ]; then xargs rm -f < "$$w"; fi; done
+	for w in $(EXPERIMENT:=.output_sorted); do if [ -f "$$w" ]; then xargs rm -f < "$$w"; fi; done
 	for d in $(EXPERIMENT); do if [ -d "`basename "$$d"`" ]; then rmdir "out/`basename "$$d"`"; fi; done
-	rm -f $(EXPERIMENT:=.output) $(EXPERIMENT:=.output.temp)
+	rm -f $(EXPERIMENT:=.output) $(EXPERIMENT:=.output.temp) $(EXPERIMENT:=.output_sorted) $(EXPERIMENT:=.output_sorted.temp)
 	rm -f $(COMMON:=.format) $(EXPERIMENT:=.format)
 
 clean-generated:
