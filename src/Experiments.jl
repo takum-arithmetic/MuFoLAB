@@ -405,8 +405,16 @@ function get_measurement(
 			)
 		end
 		x_approx = parameters.solver(A_approx, b_approx, preparation)
-	catch
-		return MatrixSingular::MeasurementError
+	catch e
+		if isa(e, SingularException)
+			# No problemo, we have provisioned for this
+			return MatrixSingular::MeasurementError
+		else
+			# We just rethrow any other (unknown) exception
+			# as this most likely indicates an error in the
+			# code rather than a numerical phenomenon
+			rethrow(e)
+		end
 	end
 
 	# compute errors
