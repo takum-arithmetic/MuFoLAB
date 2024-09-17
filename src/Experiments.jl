@@ -50,9 +50,11 @@ abstract type AbstractExperimentMeasurement end
 	test_matrices::Vector{TestMatrices.TestMatrix}
 end
 
+@enum MeasurementError MatrixSingular MatrixUnderOverflow
+
 struct ExperimentResults
 	experiment::Experiment
-	measurement::Matrix{Union{Nothing, AbstractExperimentMeasurement}}
+	measurement::Matrix{Union{AbstractExperimentMeasurement, MeasurementError, Missing}}
 end
 
 @enum _MeasurementState pending = 0 processing done
@@ -107,8 +109,8 @@ end
 
 function ExperimentResults(experiment::Experiment)
 	# this is where we store the measurements
-	measurement = Matrix{Union{Nothing, AbstractExperimentMeasurement}}(
-		nothing,
+	measurement = Matrix{Union{AbstractExperimentMeasurement, MeasurementError, Missing}}(
+		missing,
 		length(experiment.number_types),
 		length(experiment.test_matrices),
 	)
@@ -145,7 +147,8 @@ function ExperimentResults(experiment::Experiment)
 			   t.absolute_maximum >
 			   floatmax(experiment.number_types[j])
 				# some matrix entries are out of bounds
-				measurement[j, i] = nothing
+				measurement[j, i] =
+					MatrixUnderOverflow::MeasurementError
 			else
 				# call the main get_measurement function identified
 				# by the type of parameters, passing in the
@@ -178,15 +181,16 @@ function ExperimentResults(experiment::Experiment)
 end
 
 function write_experiment_results(experiment_results::ExperimentResults)
-	# the measurement matrix contains a mix of "nothing" and the used
+	# the measurement matrix contains a mix of MeasurementErrors, missing and the used
 	# subtype of AbstractExperimentMeasurement. The first thing we do
-	# is filter out the nothing and then check if it's homogeneously
+	# is filter out the MeasurementErrors and missings and then check if it's homogeneously
 	# one type.
 	local measurement_type
 	local measurement_type_instance
 
-	valid_measurements =
-		experiment_results.measurement[experiment_results.measurement .!= nothing]
+	valid_measurements = experiment_results.measurement[typeof.(
+		experiment_results.measurement
+	) .<: AbstractExperimentMeasurement]
 
 	if length(valid_measurements) == 0
 		# we only have invalid measurements
@@ -238,9 +242,40 @@ function write_experiment_results(experiment_results::ExperimentResults)
 		# fill the DataFrame with values from R
 		for i in 1:length(type_names)
 			df[!, i + 1] = [
-				if m == nothing ||
-				   isnan(getfield(m, field_name))
-					NaN
+				if typeof(m) == MeasurementError
+					if (
+						m ==
+						MatrixSingular::MeasurementError
+					)
+						-Inf
+					elseif (
+						m ==
+						MatrixUnderOverflow::MeasurementError
+					)
+						Inf
+					else
+						throw(
+						DomainError(
+							m,
+							"Unhandled enum type",
+						),
+					)
+					end
+				elseif isnan(
+					getfield(
+						m,
+						field_name,
+					),
+				)
+					# if a NaN happened otherwise it is due to
+					# a singularity, we book it as an Inf
+					Inf
+				elseif typeof(m) == Missing
+					throw(
+						ErrorException(
+							"There are missing measurements",
+						),
+					)
 				else
 					getfield(m, field_name)
 				end for m in
@@ -369,7 +404,7 @@ function get_measurement(
 		end
 		x_approx = parameters.solver(A_approx, b_approx, preparation)
 	catch
-		return nothing
+		return MatrixSingular::MeasurementError
 	end
 
 	# compute errors
