@@ -17,7 +17,7 @@ function ReplacementValues(type_name::String, df::DataFrame)
 
 	# We check in which group the type_name is
 	groups = [
-		["Posit8", "Takum8"],
+		["Float8", "Posit8", "Takum8"],
 		["BFloat16", "Float16", "Posit16", "Takum16"],
 		["Float32", "Posit32", "Takum32"],
 		["Float64", "Takum64"],

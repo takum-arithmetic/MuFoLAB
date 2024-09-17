@@ -2,6 +2,7 @@
 module Float128Conversions
 
 using BFloat16s
+using Float8s
 using Quadmath
 using SoftPosit
 using Takums
@@ -183,5 +184,9 @@ Quadmath.Float128(x::Posit32) = Float128(Float64(x))
 # For bfloat16 use Float32 as a common ground
 BFloat16s.BFloat16(x::Float128) = BFloat16(Float32(x))
 Quadmath.Float128(x::BFloat16) = Float128(Float32(x))
+
+# For float8 use Float32 as a common ground, as well
+Float8s.Float8(x::Float128) = Float8(Float32(x))
+Quadmath.Float128(x::Float8) = Float128(Float32(x))
 
 end

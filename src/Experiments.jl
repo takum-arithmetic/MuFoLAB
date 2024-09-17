@@ -6,6 +6,7 @@ using BFloat16s
 using CSV
 using DataFrames
 using Float128Conversions
+using Float8s
 using LinearAlgebra
 using Printf
 using Quadmath
@@ -27,6 +28,7 @@ export AbstractExperimentParameters,
 	SolverExperimentMeasurement
 
 all_number_types = [
+	Float8,
 	Takum8,
 	Posit8,
 	Takum16,
@@ -255,11 +257,11 @@ function write_experiment_results(experiment_results::ExperimentResults)
 						Inf
 					else
 						throw(
-						DomainError(
-							m,
-							"Unhandled enum type",
-						),
-					)
+							DomainError(
+								m,
+								"Unhandled enum type",
+							),
+						)
 					end
 				elseif isnan(
 					getfield(
