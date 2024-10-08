@@ -12,4 +12,7 @@ end
 # select those matrices from the SuiteSparse Matrix Collection with NNZ <= 50.000
 predicate = sp(:) & @pred(nnz <= 50_000)
 
-TestMatricesGenerator.generate_test_matrices("out/sparse_test_matrices.jld2", predicate)
+TestMatricesGenerator.generate_sparse_test_matrices(;
+	file_name = "out/sparse_test_matrices.jld2",
+	predicate = predicate,
+)

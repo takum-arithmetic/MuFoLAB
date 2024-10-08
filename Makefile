@@ -22,14 +22,16 @@ EXPERIMENT =\
 	src/solve_qr\
 
 GENERATOR =\
+	src/generate_full_test_matrices\
 	src/generate_sparse_test_matrices\
 
 all: $(EXPERIMENT:=.output_sorted)
 
-src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl #config.mk Makefile
+src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl config.mk Makefile
+src/generate_full_test_matrices.output: src/generate_full_test_matrices.jl src/TestMatrices.jl config.mk Makefile
 
-src/solve_lu.output: src/solve_lu.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output #config.mk Makefile
-src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/Float128Conversions.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output #config.mk Makefile
+src/solve_lu.output: src/solve_lu.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
+src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/Float128Conversions.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 
 src/solve_qr.output_sorted: src/solve_qr.output src/sort_csv.jl
 src/solve_lu.output_sorted: src/solve_lu.output src/sort_csv.jl
