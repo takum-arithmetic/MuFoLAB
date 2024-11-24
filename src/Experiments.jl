@@ -10,7 +10,7 @@ using Float8s
 using LinearAlgebra
 using Printf
 using Quadmath
-using SoftPosit
+using Posits
 using SparseArrays
 using Takums
 
@@ -30,15 +30,20 @@ export AbstractExperimentParameters,
 all_number_types = [
 	Float8,
 	Takum8,
+	LinearTakum8,
 	Posit8,
 	Takum16,
+	LinearTakum16,
 	Posit16,
 	BFloat16,
 	Float16,
 	Takum32,
+	LinearTakum32,
 	Posit32,
 	Float32,
 	Takum64,
+	LinearTakum64,
+	Posit64,
 	Float64,
 ]
 
