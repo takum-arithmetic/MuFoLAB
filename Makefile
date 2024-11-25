@@ -19,6 +19,9 @@ COMMON =\
 
 EXPERIMENT =\
 	src/solve_lu\
+	src/solve_mpir_float_16_32_64\
+	src/solve_mpir_posit_16_32_64\
+	src/solve_mpir_takum_16_32_64\
 	src/solve_qr\
 
 GENERATOR =\
@@ -31,10 +34,16 @@ src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl s
 src/generate_full_test_matrices.output: src/generate_full_test_matrices.jl src/TestMatrices.jl config.mk Makefile
 
 src/solve_lu.output: src/solve_lu.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
+src/solve_mpir_float_16_32_64.output: src/solve_mpir_float_16_32_64.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
+src/solve_mpir_posit_16_32_64.output: src/solve_mpir_posit_16_32_64.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
+src/solve_mpir_takum_16_32_64.output: src/solve_mpir_takum_16_32_64.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/Float128Conversions.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 
-src/solve_qr.output_sorted: src/solve_qr.output src/sort_csv.jl
 src/solve_lu.output_sorted: src/solve_lu.output src/sort_csv.jl
+src/solve_mpir_float_16_32_64.output_sorted: src/solve_mpir_float_16_32_64.output src/sort_csv.jl
+src/solve_mpir_posit_16_32_64.output_sorted: src/solve_mpir_posit_16_32_64.output src/sort_csv.jl
+src/solve_mpir_takum_16_32_64.output_sorted: src/solve_mpir_takum_16_32_64.output src/sort_csv.jl
+src/solve_qr.output_sorted: src/solve_qr.output src/sort_csv.jl
 
 .jl.format:
 	@# work around JuliaFormatter not supporting tabs for indentation

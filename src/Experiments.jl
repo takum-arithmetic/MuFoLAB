@@ -1,6 +1,7 @@
 # See LICENSE file for copyright and license details.
 module Experiments
 
+push!(LOAD_PATH, "src/")
 using Base.Threads
 using BFloat16s
 using CSV
@@ -8,6 +9,7 @@ using DataFrames
 using Float128Conversions
 using Float8s
 using LinearAlgebra
+import LU
 using Printf
 using Quadmath
 using Posits
@@ -25,7 +27,10 @@ export AbstractExperimentParameters,
 	write_experiment_results,
 	SolverExperimentParameters,
 	SolverExperimentPreparation,
-	SolverExperimentMeasurement
+	SolverExperimentMeasurement,
+	MPIRExperimentParameters,
+	MPIRExperimentPreparation,
+	MPIRExperimentMeasurement
 
 all_number_types = [
 	Float8,
@@ -50,6 +55,36 @@ all_number_types = [
 abstract type AbstractExperimentParameters end
 abstract type AbstractExperimentPreparation end
 abstract type AbstractExperimentMeasurement end
+
+function get_logarithmic_relative_error(approx::AbstractVector, exact::AbstractVector)
+	# Gustafson defines the log-rel-error as
+	#
+	#	relErr(approx, exact) = {
+	#		NaR	     | sgn(approx) != sgn(exact)
+	#		|ln(approx/exact)|   | otherwise
+	#	}
+	#
+	# For the extension to vectors, we have to incorporate the signs
+	# in a way. Given one can pull in the ||exact|| in the relative error
+	# term as
+	#
+	#	|| (approx - exact) / ||exact|| ||,
+	#
+	# we also do it element-wise here: First check the signs
+	# of all entries for inconsistencies; this also catches the cases
+	# where either entry is zero and the other isn't.
+	# If there are any, return NaN immediately.
+	if sign.(approx) != sign.(exact)
+		return NaN
+	end
+
+	# All entries match in sign. Compute ln(approx/exact) elementwise
+	# for the other entries and return the relative error as the norm
+	# of this vector. Set 0/0=1 by convention.
+	zero_log(a, b) = (iszero(a) && iszero(b)) ? zero(typeof(a)) : log(a / b)
+
+	return norm([zero_log(approx[i], exact[i]) for i in 1:length(exact)], 2)
+end
 
 @kwdef struct Experiment
 	parameters::AbstractExperimentParameters
@@ -359,36 +394,6 @@ struct SolverExperimentMeasurement <: AbstractExperimentMeasurement
 	logarithmic_relative_error::Float128
 end
 
-function get_logarithmic_relative_error(approx::AbstractVector, exact::AbstractVector)
-	# Gustafson defines the log-rel-error as
-	#
-	#	relErr(approx, exact) = {
-	#		NaR	     | sgn(approx) != sgn(exact)
-	#		|ln(approx/exact)|   | otherwise
-	#	}
-	#
-	# For the extension to vectors, we have to incorporate the signs
-	# in a way. Given one can pull in the ||exact|| in the relative error
-	# term as
-	#
-	#	|| (approx - exact) / ||exact|| ||,
-	#
-	# we also do it element-wise here: First check the signs
-	# of all entries for inconsistencies; this also catches the cases
-	# where either entry is zero and the other isn't.
-	# If there are any, return NaN immediately.
-	if sign.(approx) != sign.(exact)
-		return NaN
-	end
-
-	# All entries match in sign. Compute ln(approx/exact) elementwise
-	# for the other entries and return the relative error as the norm
-	# of this vector. Set 0/0=1 by convention.
-	zero_log(a, b) = (iszero(a) && iszero(b)) ? zero(typeof(a)) : log(a / b)
-
-	return norm([zero_log(approx[i], exact[i]) for i in 1:length(exact)], 2)
-end
-
 function get_measurement(
 	parameters::SolverExperimentParameters,
 	::Type{T},
@@ -435,6 +440,144 @@ function get_measurement(
 		absolute_error,
 		relative_error,
 		logarithmic_relative_error,
+	)
+end
+
+# the iterative refinement experiments compare the solutions of linear
+# systems of equations Ax = b via the infinity norm.
+@kwdef struct MPIRExperimentParameters <: AbstractExperimentParameters
+	low_precision_type::DataType
+	working_precision_type::DataType
+	high_precision_type::DataType
+	tolerance::Float64
+	maximum_iteration_count::Unsigned
+end
+
+@kwdef struct MPIRExperimentPreparation <: AbstractExperimentPreparation
+	x_exact::Vector{Float128}
+	b_exact::Vector{Float128}
+end
+
+function get_preparation(parameters::MPIRExperimentParameters, A::SparseMatrixCSC{Float64, Int64})
+	# determine the exact solution x and right-hand-side b in
+	# 128 bit precision. We set the desired solution x to be
+	# (1,...,1).
+	x_exact = ones(Float128, size(A, 1))
+	b_exact = Float128.(A) * x_exact
+
+	return MPIRExperimentPreparation(; x_exact = x_exact, b_exact = b_exact)
+end
+
+struct MPIRExperimentMeasurement <: AbstractExperimentMeasurement
+	absolute_error::Float128
+	relative_error::Float128
+	logarithmic_relative_error::Float128
+	iteration_count::Unsigned
+end
+
+function get_measurement(
+	parameters::MPIRExperimentParameters,
+	::Type{T},
+	A::SparseMatrixCSC{Float64, Int64},
+	preparation::MPIRExperimentPreparation,
+) where {T <: AbstractFloat}
+	local x_approx
+
+	# get the row and column permutations for A via UMFPACK
+	lud = LinearAlgebra.lu(A)
+	permutation_rows = lud.p
+	permutation_columns = lud.q
+
+	# convert the permuted exact solution b to working and high precision
+	b_working = parameters.working_precision_type.(preparation.b_exact[permutation_rows])
+	b_high = parameters.high_precision_type.(preparation.b_exact[permutation_rows])
+
+	# obtain PAS, which is A with row- and column permutations
+	PAS_working =
+		parameters.working_precision_type.(
+			A[permutation_rows, permutation_columns]
+		)
+	PAS_high = parameters.high_precision_type.(A[permutation_rows, permutation_columns])
+
+	# initialise solution vector x to zero, in working precision
+	x_working = zeros(parameters.working_precision_type, size(PAS_working, 2))
+
+	# determine the residual (b - PAS * x) in high precision as it's cheap
+	residual_high = b_high - PAS_high * parameters.high_precision_type.(x_working)
+
+	# perform a LU decomposition of PAS in low precision
+	L_low, U_low = LU.lu(parameters.low_precision_type.(PAS_working))
+
+	# cast the low precision results to working precision
+	L_working = parameters.working_precision_type.(L_low)
+	U_working = parameters.working_precision_type.(U_low)
+
+	iteration_count = parameters.maximum_iteration_count
+	for i in 0:(parameters.maximum_iteration_count - 1)
+		# determine the desired upper bound on the residual
+		residual_upper_bound =
+			size(PAS_working, 2) *
+			parameters.working_precision_type(
+				parameters.tolerance,
+			) *
+			(
+				norm(b_working, Inf) +
+				norm(PAS_working, Inf) *
+				norm(x_working, Inf)
+			)
+
+		# break if we get below this upper bound
+		if norm(parameters.working_precision_type.(residual_high), Inf) <
+		   residual_upper_bound
+			iteration_count = i
+			break
+		end
+
+		# otherwise, update x (and consequently the residual)
+		local e_working
+		try
+			e_working =
+				U_working \ (
+					L_working \
+					parameters.working_precision_type.(
+						residual_high
+					)
+				)
+		catch e
+			if isa(e, SingularException)
+				# No problemo, we have provisioned for this
+				return MatrixSingular::MeasurementError
+			else
+				# We just rethrow any other (unknown) exception
+				# as this most likely indicates an error in the
+				# code rather than a numerical phenomenon
+				rethrow(e)
+			end
+		end
+
+		x_working = x_working + e_working
+		residual_high =
+			residual_high -
+			PAS_high * parameters.high_precision_type.(e_working)
+	end
+
+	# Apply column permutation to x_working to obtain solution for A
+	x_working = x_working[permutation_columns]
+
+	# compute errors
+	exact = preparation.x_exact
+	approx = Float128.(x_working)
+	err = exact - approx
+
+	absolute_error = norm(err, 2)
+	relative_error = norm(err, 2) / norm(exact, 2)
+	logarithmic_relative_error = get_logarithmic_relative_error(approx, exact)
+
+	return MPIRExperimentMeasurement(
+		absolute_error,
+		relative_error,
+		logarithmic_relative_error,
+		iteration_count,
 	)
 end
 
