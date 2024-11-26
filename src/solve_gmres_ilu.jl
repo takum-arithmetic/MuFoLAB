@@ -10,7 +10,11 @@ using IncompleteLU
 using SparseArrays
 import TestMatrices
 
-function solve_gmres_ilu(A::AbstractMatrix, b::AbstractVector, preparation::SolverExperimentPreparation)
+function solve_gmres_ilu(
+	A::AbstractMatrix,
+	b::AbstractVector,
+	preparation::SolverExperimentPreparation,
+)
 	x, history = gmres(A, b; Pl = ilu(A), log = true)
 
 	return x, history.iters

@@ -415,7 +415,8 @@ function get_measurement(
 				b_approx,
 			)
 		end
-		x_approx, iteration_count = parameters.solver(A_approx, b_approx, preparation)
+		x_approx, iteration_count =
+			parameters.solver(A_approx, b_approx, preparation)
 	catch e
 		if isa(e, SingularException)
 			# No problemo, we have provisioned for this

@@ -214,7 +214,7 @@ function Takums.LinearTakum64(x::Float128)
 			c = -h
 			m = Float128(0)
 		else
-			c = -h-1
+			c = -h - 1
 			m = 1 - g
 		end
 	end
@@ -390,7 +390,7 @@ function Posits.Posit64(x::Float128)
 			c = -h
 			m = Float128(0)
 		else
-			c = -h-1
+			c = -h - 1
 			m = 1 - g
 		end
 	end
@@ -541,10 +541,10 @@ function Quadmath.Float128(t::Posit64)
 	# Determine exponent value
 	if k <= 64 - 4
 		# both exponent bits are explicitly given
-		e = (T >> (64 - 4 - k)) & UInt64(0x3);
+		e = (T >> (64 - 4 - k)) & UInt64(0x3)
 	elseif k == 64 - 4 + 1
 		# only the higher exponent bit is given, right at the end
-		e = 2 * (T & UInt64(0x1));
+		e = 2 * (T & UInt64(0x1))
 	else
 		# no exponent bit is given, ghost bits imply zero
 		e = 0

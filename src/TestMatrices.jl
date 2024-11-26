@@ -79,7 +79,11 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 	elseif type == :sparse
 		array_file = "out/sparse_test_matrices.jld2"
 	else
-		throw(ArgumentError("The TestMatrix array type must be :full or :sparse"))
+		throw(
+			ArgumentError(
+				"The TestMatrix array type must be :full or :sparse",
+			),
+		)
 	end
 
 	# load test matrices from the file
