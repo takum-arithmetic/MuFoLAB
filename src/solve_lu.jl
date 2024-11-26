@@ -47,7 +47,7 @@ function solve_lu(A::AbstractMatrix, b::AbstractVector, preparation::SolverExper
 	z = U \ w
 
 	# We obtain x via x=Qz
-	return z[preparation.permutation_columns]
+	return z[preparation.permutation_columns], 1
 end
 
 write_experiment_results(

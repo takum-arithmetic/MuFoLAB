@@ -392,6 +392,7 @@ struct SolverExperimentMeasurement <: AbstractExperimentMeasurement
 	absolute_error::Float128
 	relative_error::Float128
 	logarithmic_relative_error::Float128
+	iteration_count::Float128
 end
 
 function get_measurement(
@@ -400,7 +401,7 @@ function get_measurement(
 	A::SparseMatrixCSC{Float64, Int64},
 	preparation::SolverExperimentPreparation,
 ) where {T <: AbstractFloat}
-	local x_approx
+	local x_approx, iteration_count
 
 	# reduce the exact right-hand-side b and the given matrix to
 	# the target type
@@ -414,7 +415,7 @@ function get_measurement(
 				b_approx,
 			)
 		end
-		x_approx = parameters.solver(A_approx, b_approx, preparation)
+		x_approx, iteration_count = parameters.solver(A_approx, b_approx, preparation)
 	catch e
 		if isa(e, SingularException)
 			# No problemo, we have provisioned for this
@@ -440,6 +441,7 @@ function get_measurement(
 		absolute_error,
 		relative_error,
 		logarithmic_relative_error,
+		iteration_count,
 	)
 end
 
@@ -472,7 +474,7 @@ struct MPIRExperimentMeasurement <: AbstractExperimentMeasurement
 	absolute_error::Float128
 	relative_error::Float128
 	logarithmic_relative_error::Float128
-	iteration_count::Unsigned
+	iteration_count::Float128
 end
 
 function get_measurement(

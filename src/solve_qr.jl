@@ -31,7 +31,7 @@ function solve_qr(A::AbstractMatrix, b::AbstractVector, preparation::SolverExper
 	Q_full = Q * spdiagm(ones(typeof(A[1, 1]), (size(A, 1))))
 	z = Q_full' * b[preparation.permutation_rows]
 
-	return (R \ z)[invperm(preparation.permutation_columns)]
+	return (R \ z)[invperm(preparation.permutation_columns)], 1
 end
 
 write_experiment_results(
