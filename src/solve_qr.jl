@@ -25,11 +25,10 @@ function solve_qr(A::AbstractMatrix, b::AbstractVector, preparation::SolverExper
 
 	# Perform a QR decomposition on PAS, which we can expect to be very
 	# efficient as PAS is A with a fill-reducing reordering.
-	Q, R = QR.qr(PAS)
+	Q, R = QR.qr_householder(PAS)
 
 	# Solve the system using Q, R and the permutations
-	Q_full = Q * spdiagm(ones(typeof(A[1, 1]), (size(A, 1))))
-	z = Q_full' * b[preparation.permutation_rows]
+	z = Q' * b[preparation.permutation_rows]
 
 	return (R \ z)[invperm(preparation.permutation_columns)], 1
 end
