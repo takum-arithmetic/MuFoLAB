@@ -17,21 +17,25 @@ function get_lu_row_and_column_permutations(A::SparseMatrixCSC{Float64, Int64})
 end
 
 function solve_lu(A::AbstractMatrix, b::AbstractVector, preparation::SolverExperimentPreparation)
-	# Apply the row and column permutations to A, yielding PAS,
+	# first determine the scaling matrix, whose diagonal entries are
+	# the row sums of A
+	C = Diagonal(1 ./ sum(A; dims=2)[:])
+
+	# Apply the scaling, row and column permutations to A, yielding PCAS,
 	# where P is the row permutation and S is the column permutation
 	# matrix
-	PAS = A[preparation.permutation_rows, preparation.permutation_columns]
+	PCAS = (C * A)[preparation.permutation_rows, preparation.permutation_columns]
 
-	# Perform a LU decomposition without pivotisation on PAS, which
-	# works given we know that (PAS)[j,j] != holds for all j in 1:n
+	# Perform a LU decomposition without pivotisation on PCAS, which
+	# works given we know that (PCAS)[j,j] != 0 holds for all j in 1:n
 	# by construction
-	L, U = LU.lu(PAS)
+	L, U = LU.lu(PCAS)
 
-	# The linear system is of the form Ax=b. Applying a row
-	# permutation on both sides yields PAx=Pb =: y, then multiplying
+	# The linear system is of the form Ax=b. Applying scaling and a row
+	# permutation on both sides yields PCAx=PCb =: y, then multiplying
 	# the identity matrix S*S^inv to the right of A yields
-	# (PAS)(S^inv*x)=y, and now we can substitute our fully
-	# pivoted LU decomposition, yielding LU(S^inv*x). Defining
+	# (PCAS)(S^inv*x)=y, and now we can substitute our fully
+	# pivoted LU decomposition, yielding LU(S^inv*x)=y. Defining
 	# z := S^inv*x (and noting that x=Sz) we obtain the system
 	# LUz = y, which we solve in two stages: The outer system is
 	# solved via
@@ -42,11 +46,11 @@ function solve_lu(A::AbstractMatrix, b::AbstractVector, preparation::SolverExper
 	#
 	#	z = U\w
 	#
-	y = b[preparation.permutation_rows]
+	y = (C * b)[preparation.permutation_rows]
 	w = L \ y
 	z = U \ w
 
-	# We obtain x via x=Qz
+	# We obtain x via x=Sz
 	return z[preparation.permutation_columns], 1
 end
 
