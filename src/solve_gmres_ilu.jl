@@ -4,6 +4,7 @@ using SparseArrays
 push!(LOAD_PATH, "src/")
 using Crutches
 using Experiments
+using Float8s
 using LinearAlgebra
 using IterativeSolvers
 using IncompleteLU
@@ -15,7 +16,20 @@ function solve_gmres_ilu(
 	b::AbstractVector,
 	preparation::SolverExperimentPreparation,
 )
-	x, history = gmres(A, b; Pl = ilu(A), log = true)
+	relative_tolerances = Dict(
+		1 => eltype(A)(Float64(sqrt(eps(Float8)))),
+		2 => eltype(A)(Float64(sqrt(eps(Float16)))),
+		4 => eltype(A)(Float64(sqrt(eps(Float32)))),
+		8 => eltype(A)(Float64(sqrt(eps(Float64)))),
+	)
+
+	x, history = gmres(
+		A,
+		b;
+		Pl = ilu(A),
+		reltol = relative_tolerances[sizeof(eltype(A))],
+		log = true,
+	)
 
 	return x, history.iters
 end
