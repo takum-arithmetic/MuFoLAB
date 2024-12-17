@@ -101,10 +101,7 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 			test_matrices = test_matrices[1:min(200, end)]
 		elseif type == :sparse
 			# obtain matrices with reasonable size
-			filter!(t -> (t.nnz in 100:2000), test_matrices)
-
-			# get the first 200
-			test_matrices = test_matrices[1:min(200, end)]
+			filter!(t -> (t.nnz in 1:10000), test_matrices)
 		end
 	end
 
