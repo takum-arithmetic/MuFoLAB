@@ -182,4 +182,25 @@ function qr_givens(A::SparseMatrixCSC{T, Int64}) where {T <: AbstractFloat}
 	return Q', UpperTriangular(R)
 end
 
+function solve(
+	A::AbstractMatrix,
+	b::AbstractVector,
+	permutation_rows::AbstractVector,
+	permutation_columns::AbstractVector,
+)
+	# Apply the row and column permutations to A, yielding PAS,
+	# where P is the row permutation and S is the column permutation
+	# matrix
+	PAS = A[permutation_rows, permutation_columns]
+
+	# Perform a QR decomposition on PAS, which we can expect to be very
+	# efficient as PAS is A with a fill-reducing reordering.
+	Q, R = QR.qr_householder(PAS)
+
+	# Solve the system using Q, R and the permutations
+	z = Q' * b[permutation_rows]
+
+	return (R \ z)[invperm(permutation_columns)]
+end
+
 end
