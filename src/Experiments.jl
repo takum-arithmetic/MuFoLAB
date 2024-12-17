@@ -10,7 +10,9 @@ using Float128Conversions
 using Float8s
 using LinearAlgebra
 import LU
+import QR
 using Printf
+using Random
 using Quadmath
 using Posits
 using SparseArrays
@@ -362,12 +364,30 @@ end
 	permutation_columns::Union{Nothing, Vector{Int64}}
 end
 
+# according to Carson and Higham, 2017
+function get_pseudorandom_x_and_b(A::SparseMatrixCSC{Float64, Int64})
+	# we get the UInt64 hash of the matrix and seed a PRNG with it
+	prng = Xoshiro(hash(A))
+
+	# generate a pseudorandom right hand side b and normalise it
+	# such that ||b||_inf = 1
+	b_exact = rand(prng, Float128, size(A, 1))
+	b_exact /= norm(b_exact, Inf)
+
+	# determine x by solving Ax=b in quad precision using our own
+	# LU implementation as Julia's backslash operator can only deal
+	# with Float32 and Float64 matrices. We use UMFPACK, though, to
+	# obtain our row and column permutations from the Float64 A
+	qrd = LinearAlgebra.qr(A)
+
+	x_exact = QR.solve(Float128.(A), b_exact, qrd.prow, qrd.pcol)
+
+	return x_exact, b_exact
+end
+
 function get_preparation(parameters::SolverExperimentParameters, A::SparseMatrixCSC{Float64, Int64})
-	# determine the exact solution x and right-hand-side b in
-	# 128 bit precision. We set the desired solution x to be
-	# (1,...,1).
-	x_exact = ones(Float128, size(A, 1))
-	b_exact = Float128.(A) * x_exact
+	# generate x and b with a pseudorandom b that satisfies ||b||_inf = 1
+	x_exact, b_exact = get_pseudorandom_x_and_b(A)
 
 	# get the row and column permutations via the parameter function
 	local permuation_rows, permutation_columns
@@ -462,11 +482,8 @@ end
 end
 
 function get_preparation(parameters::MPIRExperimentParameters, A::SparseMatrixCSC{Float64, Int64})
-	# determine the exact solution x and right-hand-side b in
-	# 128 bit precision. We set the desired solution x to be
-	# (1,...,1).
-	x_exact = ones(Float128, size(A, 1))
-	b_exact = Float128.(A) * x_exact
+	# generate x and b with a pseudorandom b that satisfies ||b||_inf = 1
+	x_exact, b_exact = get_pseudorandom_x_and_b(A)
 
 	return MPIRExperimentPreparation(; x_exact = x_exact, b_exact = b_exact)
 end
