@@ -33,6 +33,10 @@ function ReplacementValues(type_name::String, df::DataFrame)
 		throw(ErrorException("Type '$(type_name)' matches no group"))
 	end
 
+	# Filter out those type names in the type_group which are not
+	# present in the DataFrame
+	filter!(c -> c in names(df), type_group)
+
 	# Extract the type columns belonging to the type group from the
 	# DataFrame as a matrix
 	type_group_columns = Matrix(df[!, type_group])
