@@ -68,7 +68,7 @@ function solve(
 	z = U \ w
 
 	# We obtain x via x=Sz
-	return z[permutation_columns]
+	return z[invperm(permutation_columns)]
 end
 
 end
