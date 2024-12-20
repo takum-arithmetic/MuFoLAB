@@ -36,7 +36,7 @@ function solve(
 )
 	# first determine the scaling matrix, whose diagonal entries are
 	# the row sums of A
-	C = Diagonal(1 ./ sum(A; dims = 2)[:])
+	C = Diagonal(1 ./ sum(abs.(A); dims = 2)[:])
 
 	# Apply the scaling, row and column permutations to A, yielding PCAS,
 	# where P is the row permutation and S is the column permutation
