@@ -1,5 +1,5 @@
 # See LICENSE file for copyright and license details
-# Takum Linear Algebra Benchmarks
+# MuFoLAB - Multi-Format Linear Algebra Benchmarks
 .POSIX:
 .SUFFIXES:
 .SUFFIXES: .format .jl .output .output_sorted
