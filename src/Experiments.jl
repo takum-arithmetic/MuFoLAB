@@ -532,8 +532,8 @@ function get_measurement(
 	L_working = parameters.working_precision_type.(L_low)
 	U_working = parameters.working_precision_type.(U_low)
 
-	iteration_count = parameters.maximum_iteration_count
-	for i in 0:(parameters.maximum_iteration_count - 1)
+	iteration_count = nothing
+	for i in 0:parameters.maximum_iteration_count
 		# determine the desired upper bound on the residual
 		residual_upper_bound =
 			size(PAS_working, 2) *
@@ -579,6 +579,11 @@ function get_measurement(
 		residual_high =
 			residual_high -
 			PAS_high * parameters.high_precision_type.(e_working)
+	end
+
+	if iteration_count == nothing
+		# we exceeded the maximum iteration count
+		return MatrixUnderOverflow::MeasurementError
 	end
 
 	# Apply column permutation to x_working to obtain solution for A

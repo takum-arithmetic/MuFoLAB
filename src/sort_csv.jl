@@ -98,7 +98,15 @@ function sort_csv(input_file_name::String)
 	df_original = copy(df)
 
 	for i in 1:ncol(df)
-		replacement_values = ReplacementValues(type_names[i], df_original)
+		if contains(input_file_name, "mpir")
+			replacement_values = ReplacementValues(;
+				zero = 1e-1,
+				negative_infinity = 1e3,
+				positive_infinity = 1e4,
+			)
+		else
+			replacement_values = ReplacementValues(type_names[i], df_original)
+		end
 
 		df[(df[:, i] .== 0.0), i]  .= replacement_values.zero
 		df[(df[:, i] .== Inf), i]  .= replacement_values.positive_infinity

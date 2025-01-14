@@ -15,8 +15,8 @@ write_experiment_results(
 				low_precision_type = Float16,
 				working_precision_type = Float16,
 				high_precision_type = Float32,
-				tolerance = 1.0e-08,
-				maximum_iteration_count = 250,
+				tolerance = 1.0e-03,
+				maximum_iteration_count = 100,
 			),
 			number_types = [Float64],
 			test_matrices = TestMatrices.get_test_matrices(
