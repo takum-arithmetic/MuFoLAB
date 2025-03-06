@@ -1,3 +1,4 @@
+# See LICENSE file for copyright and license details.
 module TestMatricesGenerator
 
 using CodecZlib
@@ -110,6 +111,55 @@ function generate_sparse_test_matrices(;
 
 	# sort the test matrix array by name
 	sort!(test_matrices; by = t -> t.name)
+
+	# print the file name we are writing to standard output
+	println(file_name)
+
+	# store the test matrix array in a julia data file (JLD2)
+	jldopen(file_name, "w"; compress = true) do file
+		return file["test_matrices"] = test_matrices
+	end
+end
+
+function generate_stochastic_test_matrices(;
+	file_name::String,
+	count::Integer,
+	n::Integer,
+	density_min::AbstractFloat,
+	density_max::AbstractFloat,
+)
+	# generate the test matrix array
+	test_matrices = Vector{TestMatrices.TestMatrix}(undef, count)
+
+	# check density_min and density_max
+	if density_min > density_max
+		throw(ArgumentError("density_min must be smaller than density_max"))
+	elseif density_max > 1.0
+		throw(
+			DomainError(
+				density_max,
+				"density_max must be smaller than or equal to one.",
+			),
+		)
+	end
+
+	# generate count random densities. We use a Xoshiro PRNG with a
+	# constant seed that took 7.5 million years to compute.
+	densities = rand(Xoshiro(42), Uniform(density_min, density_max), count)
+
+	# generate the matrices with specified densities, make them
+	# symmetric and convert them  to stochastic by diving them by
+	# their row sums
+	for i in 1:count
+		M = sprand(n, n, densities[i])
+		M ./= sum(M; dims = 2)
+		M = M + M'
+		dropzeros!(M)
+
+		test_matrices[i] = TestMatrices.TestMatrix(M,
+			string(i),
+		)
+	end
 
 	# print the file name we are writing to standard output
 	println(file_name)

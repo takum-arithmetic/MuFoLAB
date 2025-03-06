@@ -73,21 +73,87 @@ function TestMatrix(M::AbstractMatrix, name::String)
 	)
 end
 
+function graph_get_type_from_name(name::String)
+	category_map = Dict(
+		:graph_biological => [
+				"bio/",     # Biological Networks
+				"eco/",     # Ecology
+				"protein/", # Proteins
+				"bn/",      # Brain Networks
+			],
+		:graph_social => [
+				"ca/",             # Collaboration Networks
+				"cit/",            # Citation Networks
+				"dynamic/",        # Interaction/Recommendation Networks
+				"econ/",           # Economic Networks
+				"email/",          # E-Mail Networks
+				"ia/",             # Interaction Networks
+				"proximity/",      # Human Contact Network/Interaction
+				"rec/",            # Recommender Networks
+				"retweet_graphs/", # Retweet Networks
+				"rt/",             # Retweet Networks
+				"soc/",            # Social Networks
+				"socfb/",          # Social Networks (Facebook)
+				"tscc/",           # Temporal Reachability Graphs
+			],
+		:graph_infrastructure => [
+				"inf/",     # Infrastructure Networks
+				"power/",   # Power Grids
+				"road/",    # Road Networks
+				"tech/",    # Technological Networks
+				"massive/", # Large-Scale Graphs (Internet)
+				"web/",     # Web Graphs
+			],
+		:graph_misc => [
+				"dimacs/",   # DIMACS Challenge Mix
+				"dimacs10/", # DIMACS10 Challenge Mix
+				"graph500/", # GRAPH500 Mix
+				"heter/",    # Heterogeneous Graphs
+				"labeled/",  # Labeled Graphs Mix
+				"misc/",     # Miscellaneous Graphs
+				"rand/",     # Random Graphs
+				"sc/",       # Scientific Computing
+			],
+	)
+
+	for (graph_type, categories) in category_map
+		for category in categories
+			if startswith(name, category)
+				return graph_type
+			end
+		end
+	end
+
+	throw(ArgumentError("Graph name $(name) could not be assigned a category"))
+end
+
 function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Function} = nothing)
 	if type == :full
 		array_file = "out/full_test_matrices.jld2"
+	elseif type == :graph_biological || type == :graph_social || type == :graph_infrastructure || type == :graph_misc
+		array_file = "out/graph_test_matrices.jld2"
 	elseif type == :sparse
 		array_file = "out/sparse_test_matrices.jld2"
+	elseif type == :stochastic
+		array_file = "out/stochastic_test_matrices.jld2"
 	else
 		throw(
 			ArgumentError(
-				"The TestMatrix array type must be :full or :sparse",
+				"The TestMatrix array type must be :full, :sparse or :stochastic",
 			),
 		)
 	end
 
 	# load test matrices from the file
 	test_matrices = load(array_file, "test_matrices")
+
+	# filter out the graphs that we want using our classification function
+	if type == :graph_biological ||
+	   type == :graph_social ||
+	   type == :graph_infrastructure ||
+	   type == :graph_misc
+		filter!(tm -> (graph_get_type_from_name(tm.name) == type), test_matrices)
+	end
 
 	# filter the test matrices
 	if filter_function != nothing
@@ -96,7 +162,7 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 
 	# honour the request for reduced test data
 	if "--reduced-test-data" in ARGS
-		if type == :full
+		if type == :full || type == :graph
 			# get the first 200
 			test_matrices = test_matrices[1:min(200, end)]
 		elseif type == :sparse

@@ -32,6 +32,81 @@ while IFS= read -r GRAPH_ID; do
 		continue
 	fi
 
+	# check if the graph is blacklisted (malformed, complex, 0-indexing)
+	BLACKLIST="\
+		dynamic/ia-hospital-ward-proximity-attr.edges \
+		ia/ia-hospital-ward-proximity-attr.edges \
+		labeled/escorts.edges \
+		misc/inf-contiguous-usa.edges \
+		misc/cavity15.mtx \
+		misc/dwg961a.mtx \
+		misc/dwg961b.mtx \
+		misc/eco-everglades.txt \
+		misc/eco-florida.txt \
+		misc/eco-mangwet.txt \
+		misc/eco-stmarks.txt \
+		misc/M80PI_n.mtx \
+		misc/mhd1280a.mtx \
+		misc/mhd1280b.mtx \
+		misc/mplate.mtx \
+		misc/qc324.mtx \
+		rand/ba_1k_100k.mtx \
+		rand/ba_1k_10k.mtx \
+		rand/ba_1k_150k.mtx \
+		rand/ba_1k_15k.mtx \
+		rand/ba_1k_20k.mtx \
+		rand/ba_1k_25k.mtx \
+		rand/ba_1k_2k.mtx \
+		rand/ba_1k_30k.mtx \
+		rand/ba_1k_40k.mtx \
+		rand/ba_1k_4k.mtx \
+		rand/ba_1k_50k.mtx \
+		rand/ba_1k_6k.mtx \
+		rand/ba_1k_8k.mtx \
+		rand/er_graph_1k_100k.mtx \
+		rand/er_graph_1k_10k.mtx \
+		rand/er_graph_1k_12k.mtx \
+		rand/er_graph_1k_14k.mtx \
+		rand/er_graph_1k_200k.mtx \
+		rand/er_graph_1k_20k.mtx \
+		rand/er_graph_1k_25k.mtx \
+		rand/er_graph_1k_30k.mtx \
+		rand/er_graph_1k_35k.mtx \
+		rand/er_graph_1k_40k.mtx \
+		rand/er_graph_1k_4k.mtx \
+		rand/er_graph_1k_50k.mtx \
+		rand/er_graph_1k_60k.mtx \
+		rand/er_graph_1k_6k.mtx \
+		rand/er_graph_1k_8k.mtx \
+		rand/geo1k_100k.mtx \
+		rand/geo1k_10k.mtx \
+		rand/geo1k_12k.mtx \
+		rand/geo1k_14k.mtx \
+		rand/geo1k_150k.mtx \
+		rand/geo1k_20k.mtx \
+		rand/geo1k_25k.mtx \
+		rand/geo1k_30k.mtx \
+		rand/geo1k_35k.mtx \
+		rand/geo1k_40k.mtx \
+		rand/geo1k_4k.mtx \
+		rand/geo1k_50k.mtx \
+		rand/geo1k_6k.mtx \
+		rand/geo1k_8k.mtx \
+		rec/rec-movielens-user-tag-10m.edges \
+		soc/soc-firm-hi-tech.txt \
+		tscc/scc_rt_islam.mtx \
+		"
+
+	BLACKLISTED=false
+	for BLACKLISTED_GRAPH_ID in $BLACKLIST; do
+		if [ "$GRAPH_ID" = "$BLACKLISTED_GRAPH_ID" ]; then
+			BLACKLISTED=true
+		fi
+	done
+	if [ "$BLACKLISTED" = true ]; then
+		continue
+	fi
+
 	# generate the download URL from the graph ID
 	GRAPH_URL="https://nrvis.com/download/data/$GRAPH_CATEGORY/$GRAPH_NAME.zip"
 
@@ -76,6 +151,36 @@ while IFS= read -r GRAPH_ID; do
 
 		# extract the graph file
 		unzip -j "$TMPFILE" "$GRAPH_FILE" -d "out/graphs/$GRAPH_CATEGORY"
+
+		# apply some general post processing
+		case "$GRAPH_FILE" in
+		*.mtx)
+			# ensure two percent signs before MatrixMarket, as the
+			# Julia MatrixMarket package is pretty strict about it
+		  	sed -i '1s/^%MatrixMarket/%%MatrixMarket/' "$GRAPH_FILE"
+
+			# if a line begins with "%[0-9]" or "% [0-9]", remove the
+			# comment, as then this file has commented out the matrix
+			# dimensions, which is wrong.
+			sed -i 's/^% \?\([0-9]\)/\1/' "$GRAPH_FILE"
+			;;
+		esac
+
+		# apply some file-specific post processing
+		case "$GRAPH_FILE" in
+		*DSJC500-5.mtx)
+			# the entry count is doubled
+			sed -i '2s/^500 500 125248$/500 500 62624/' "$GRAPH_FILE"
+			;;
+		*p-hat500-1.mtx)
+			# the dimensions are messed up
+			sed -i '2s/^  500$/500 500 31569/' "$GRAPH_FILE"
+			;;
+		*mark3jac140.mtx)
+			# the dimensions are messed up
+			sed -i '2s/^64089 64089 399735$/4557 4557 19848/' "$GRAPH_FILE"
+			;;
+		esac
 
 		# clean up the temporary zip file
 		rm -f "$TMPFILE"
