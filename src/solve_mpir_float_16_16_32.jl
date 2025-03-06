@@ -24,7 +24,8 @@ write_experiment_results(
 				filter_function = t -> (
 					# quadratic and full rank
 					t.m == t.n &&
-					t.rank == t.m
+					t.rank == t.m &&
+					t.nnz in 1:10000
 				),
 			),
 		),

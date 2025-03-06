@@ -13,7 +13,7 @@ write_experiment_results(
 	ExperimentResults(
 		Experiment(;
 			parameters = MPIRExperimentParameters(;
-				low_precision_type = Float8,
+				low_precision_type = Float8_4,
 				working_precision_type = Float16,
 				high_precision_type = Float32,
 				tolerance = 1.0e-03,
@@ -25,7 +25,8 @@ write_experiment_results(
 				filter_function = t -> (
 					# quadratic and full rank
 					t.m == t.n &&
-					t.rank == t.m
+					t.rank == t.m &&
+					t.nnz in 1:10000
 				),
 			),
 		),
