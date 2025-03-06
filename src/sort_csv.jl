@@ -17,7 +17,7 @@ function ReplacementValues(type_name::String, df::DataFrame)
 
 	# We check in which group the type_name is
 	groups = [
-		["Float8", "Posit8", "Takum8", "LinearTakum8"],
+		["Float8_4", "Posit8", "Takum8", "LinearTakum8"],
 		["BFloat16", "Float16", "Posit16", "Takum16", "LinearTakum16"],
 		["Float32", "Posit32", "Takum32", "LinearTakum32"],
 		["Float64", "Posit64", "Takum64", "LinearTakum64"],
@@ -45,6 +45,14 @@ function ReplacementValues(type_name::String, df::DataFrame)
 	type_group_values = type_group_columns[isfinite.(
 		type_group_columns
 	) .&& .!iszero.(type_group_columns)]
+
+	# Return early if the collection is empty
+	if isempty(type_group_values)
+		return ReplacementValues(;
+			zero = 0.0,
+			negative_infinity = 0.0,
+			positive_infinity = 0.0)
+	end
 
 	# Sort the vector
 	type_group_values = sort(type_group_values)
@@ -105,7 +113,10 @@ function sort_csv(input_file_name::String)
 				positive_infinity = 1e4,
 			)
 		else
-			replacement_values = ReplacementValues(type_names[i], df_original)
+			replacement_values = ReplacementValues(
+				type_names[i],
+				df_original,
+			)
 		end
 
 		df[(df[:, i] .== 0.0), i]  .= replacement_values.zero

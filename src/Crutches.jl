@@ -10,10 +10,16 @@ using LinearAlgebra
 Base.trunc(::Type{Integer}, f::BFloat16) = Base.trunc(Int, f)
 
 # Float8s does not define eps()
-Base.eps(::Type{Float8}) = Float8(2^-4)
+Base.eps(::Type{Float8_4}) = Float8_4(2^-3)
 
 # Integer truncation is incomplete in Float8s
-Base.trunc(::Type{T}, f::Float8) where {T <: Integer} = Base.trunc(T, Float64(f))
+Base.trunc(::Type{T}, f::Float8_4) where {T <: Integer} = Base.trunc(T, Float64(f))
+
+# zero() is ill-defined for Float8_4 as a Float8, messing things up
+Base.zero(::Type{Float8_4}) = Float8_4(0.0)
+
+# floatmin2() is broken for Float8_4
+LinearAlgebra.floatmin2(::Type{Float8_4}) = Float8_4(2.0)
 
 # givens_algorithm is broken in Float8s given its small dynamic range,
 # we add the second count >= 20 check while pursuing an upstream fix.
@@ -32,8 +38,8 @@ Base.trunc(::Type{T}, f::Float8) where {T <: Integer} = Base.trunc(T, Float64(f)
 #
 # The above copyright notice and this permission notice shall be included
 # in all copies or substantial portions of the Software.
-function LinearAlgebra.givensAlgorithm(f::Float8, g::Float8)
-	T = Float8
+function LinearAlgebra.givensAlgorithm(f::Float8_4, g::Float8_4)
+	T = Float8_4
 	onepar = one(T)
 	T0 = typeof(onepar) # dimensionless
 	zeropar = T0(zero(T)) # must be dimensionless

@@ -577,8 +577,8 @@ Quadmath.Float128(x::Posit32) = Float128(Float64(x))
 BFloat16s.BFloat16(x::Float128) = BFloat16(Float32(x))
 Quadmath.Float128(x::BFloat16) = Float128(Float32(x))
 
-# For float8 use Float32 as a common ground, as well
-Float8s.Float8(x::Float128) = Float8(Float32(x))
-Quadmath.Float128(x::Float8) = Float128(Float32(x))
+# For float8_4 use Float32 as a common ground, as well
+Float8s.Float8_4(x::Float128) = Float8_4(Float32(x))
+Quadmath.Float128(x::Float8_4) = Float128(Float32(x))
 
 end

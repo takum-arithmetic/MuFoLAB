@@ -2,6 +2,7 @@
 module Experiments
 
 push!(LOAD_PATH, "src/")
+using ArnoldiMethod
 using Base.Threads
 using BFloat16s
 using CSV
@@ -32,10 +33,13 @@ export AbstractExperimentParameters,
 	SolverExperimentMeasurement,
 	MPIRExperimentParameters,
 	MPIRExperimentPreparation,
-	MPIRExperimentMeasurement
+	MPIRExperimentMeasurement,
+	EigenExperimentParameters,
+	EigenExperimentPreparation,
+	EigenExperimentMeasurement
 
 all_number_types = [
-	Float8,
+	Float8_4,
 	#Takum8,
 	LinearTakum8,
 	Posit8,
@@ -533,7 +537,7 @@ function get_measurement(
 	U_working = parameters.working_precision_type.(U_low)
 
 	iteration_count = nothing
-	for i in 0:parameters.maximum_iteration_count
+	for i in 0:(parameters.maximum_iteration_count)
 		# determine the desired upper bound on the residual
 		residual_upper_bound =
 			size(PAS_working, 2) *
@@ -603,6 +607,204 @@ function get_measurement(
 		relative_error,
 		logarithmic_relative_error,
 		iteration_count,
+	)
+end
+
+# the eigen experiments determine a set of eigenvalues for a given matrix,
+# e.g. using Krylov subspace methods
+@kwdef struct EigenExperimentParameters <: AbstractExperimentParameters
+	which::Symbol # :LM (largest abs), :LR (most pos), :SR (most neg)
+	eigenvalue_count::Int64
+	tolerance::Float128
+end
+
+@kwdef struct EigenExperimentPreparation <: AbstractExperimentPreparation
+	start_vector_exact::Vector{Float128}
+	eigenvalues_exact::Vector{Float128}
+	eigenvectors_exact::Matrix{Float128} # column vectors of matrix
+end
+
+function get_pseudorandom_v(A::SparseMatrixCSC{Float64, Int64})
+	# we get the UInt64 hash of the matrix and seed a PRNG with it
+	prng = Xoshiro(hash(A))
+
+	# generate a pseudorandom vector and normalise it such that
+	# ||v||_inf = 1. There is no need to normalise it, but we do
+	# it anyway.
+	v = rand(prng, Float128, size(A, 1))
+	v /= norm(v, Inf)
+
+	return v
+end
+
+function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixCSC{Float64, Int64})
+	# check if A is symmetric
+	if !issymmetric(A)
+		throw(ArgumentError("Input matrix is not symmetric"))
+	end
+
+	# generate a pseudorandom Float128 start vector
+	start_vector_exact = get_pseudorandom_v(A)
+
+	# compute the exact eigenvalues and eigenvectors based on the
+	# number of them requested in the parameters. The tolerance
+	# is set to the limits of 128 bits.
+	#
+	# We use the ArnoldiMethod.jl package, as it implements the
+	# Arnoldi method with Krylov-Schur restart, which is superior
+	# to the ARPACK method of implictly-restarted deflation, which
+	# is mathematically equivalent but more complicated to implement.
+	decomposition, history = partialschur(
+		Float128.(A);
+		nev = parameters.eigenvalue_count,
+		tol = 1e-24,
+		which = parameters.which,
+		v1 = start_vector_exact,
+	)
+
+	# verify that we converged and all eigenvalues are real (which
+	# should be, as A is symmetric)
+	if !isreal(decomposition.eigenvalues)
+		throw(ArgumentError("Eigenvalues are not real"))
+	end
+
+	if !history.converged
+		# We just carry on here as divergence in Float128 implies
+		# divergence in any smaller types.
+		println(stderr, "Eigenvalues are unconverged...")
+		
+		return EigenExperimentPreparation(;
+			start_vector_exact = start_vector_exact,
+			eigenvalues_exact = zeros(Float128, parameters.eigenvalue_count),
+			eigenvectors_exact = zeros(Float128, size(A, 1), parameters.eigenvalue_count)
+		)
+	end
+
+	# given all eigenvalues are real, we can directly obtain the
+	# eigenvectors from the Schur decomposition, which are the columns
+	# of Q. For convenience, we simply store the matrix and by
+	# convention imply the column vectors
+	#
+	# We also do that because in the general case (Arnoldi instead of
+	# Lanczos) the Schur decomposition yields a tridiagonal matrix
+	# (not diagonal), so obtaining the eigenvectors from that is
+	# a completely separate step that seems to be so scary that even
+	# KrylovKit and ArnoldiMethod didn't dare to implement it themselves
+	# and simply call into ARPACK. Thus we stay away from this and
+	# simply look at symmetric matrices. Overall, this second step
+	# is computationally cheap and the 'meat' is obtaining the
+	# Schur decomposition.
+	#
+	# Crop them to the number of requested eigenvalues/eigenvectors,
+	# as the process may yield more than we asked for.
+
+	# The eigenvectors are the columns of Q, because A is symmetric.
+	# However, eigenvectors are only unique up to their signs, so
+	# we need to normalise them in some way. We do that by looking
+	# at the signs of the respective first entries, and flipping the
+	# respective eigenvector when the first entry is negative.
+	eigenvectors_exact_firstsigns = (Float128(1.0) .- Float128(2.0) .* (decomposition.Q[1, 1:parameters.eigenvalue_count] .< 0.0))'
+
+	return EigenExperimentPreparation(;
+		start_vector_exact = start_vector_exact,
+		eigenvalues_exact = decomposition.eigenvalues[1:parameters.eigenvalue_count],
+		eigenvectors_exact = decomposition.Q[:,1:parameters.eigenvalue_count] .* eigenvectors_exact_firstsigns,
+	)
+end
+
+struct EigenExperimentMeasurement <: AbstractExperimentMeasurement
+	eigenvalues_absolute_error::Float128
+	eigenvalues_relative_error::Float128
+	eigenvalues_logarithmic_relative_error::Float128
+	eigenvectors_absolute_error::Float128
+	eigenvectors_relative_error::Float128
+	eigenvectors_logarithmic_relative_error::Float128
+	matrix_vector_product_count::Int64
+end
+
+function get_measurement(
+	parameters::EigenExperimentParameters,
+	::Type{T},
+	A::SparseMatrixCSC{Float64, Int64},
+	preparation::EigenExperimentPreparation,
+) where {T <: AbstractFloat}
+	local decomposition, history
+
+	# reduce the start vector and the given matrix to the target type
+	start_vector_approx = T.(preparation.start_vector_exact)
+	A_approx = T.(A)
+
+	try
+		# compute the requested eigenvalues and eigenvectors
+		decomposition, history = partialschur(
+			A_approx;
+			nev = parameters.eigenvalue_count,
+			tol = T(parameters.tolerance),
+			which = parameters.which,
+			v1 = start_vector_approx,
+		)
+	catch e
+		if isa(e, TaskFailedException)
+			# No problemo, we have provisioned for this
+			return MatrixSingular::MeasurementError
+		else
+			# We just rethrow any other (unknown) exception
+			# as this most likely indicates an error in the
+			# code rather than a numerical phenomenon
+			return MatrixSingular::MeasurementError
+			#rethrow(e) TODO
+		end
+	end
+
+	# verify that we converged and all eigenvalues are real (which
+	# should be, as A is symmetric); if we didn't converge we can
+	# assume that the matrix became singular
+	if !history.converged || !isreal(decomposition.eigenvalues)
+		return MatrixSingular::MeasurementError
+	end
+
+	# same as in the preparation, given A is symmetric the Schur
+	# decomposition yields the eigenvectors directly.
+	# Crop them to the number of 'requested' eigenvalues and
+	# eigenvectors, as the process may yield more.
+	eigenvalues_approx = decomposition.eigenvalues[1:parameters.eigenvalue_count]
+
+	# The eigenvectors are the columns of Q, because A is symmetric.
+	# However, eigenvectors are only unique up to their signs, so
+	# we need to normalise them in some way. We do that by looking
+	# at the signs of the respective first entries, and flipping the
+	# respective eigenvector when the first entry is negative.
+	eigenvectors_approx_firstsigns = (T(1.0) .- T(2.0) .* (decomposition.Q[1, 1:parameters.eigenvalue_count] .< 0.0))'
+	eigenvectors_approx = decomposition.Q[:,1:parameters.eigenvalue_count] .* eigenvectors_approx_firstsigns
+
+	# compute eigenvalue errors
+	exact = preparation.eigenvalues_exact
+	approx = Float128.(eigenvalues_approx)
+	err = exact - approx
+
+	eigenvalues_absolute_error = norm(err, 2)
+	eigenvalues_relative_error = norm(err, 2) / norm(exact, 2)
+	eigenvalues_logarithmic_relative_error =
+		get_logarithmic_relative_error(approx, exact)
+
+	# compute eigenvector errors
+	exact = preparation.eigenvectors_exact
+	approx = Float128.(eigenvectors_approx)
+	err = exact - approx
+
+	eigenvectors_absolute_error = norm(err, 2)
+	eigenvectors_relative_error = norm(err, 2) / norm(exact, 2)
+	eigenvectors_logarithmic_relative_error = Float128(0.0)
+		#get_logarithmic_relative_error(approx, exact)
+
+	return EigenExperimentMeasurement(
+		eigenvalues_absolute_error,
+		eigenvalues_relative_error,
+		eigenvalues_logarithmic_relative_error,
+		eigenvectors_absolute_error,
+		eigenvectors_relative_error,
+		eigenvectors_logarithmic_relative_error,
+		history.mvproducts,
 	)
 end
 
