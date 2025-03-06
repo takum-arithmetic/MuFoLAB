@@ -2,7 +2,8 @@
 
 # flags
 JULIA_FLAGS        = --threads=auto
-JULIA_SCRIPT_FLAGS = --reduced-test-data
+JULIA_SCRIPT_FLAGS = #--reduced-test-data
 
 # tools
 JULIA = julia
+SH = sh
