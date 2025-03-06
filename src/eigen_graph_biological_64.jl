@@ -20,7 +20,10 @@ write_experiment_results(
 			number_types = [Float64, LinearTakum64, Posit64],
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_biological;
-				filter_function = t -> (t.nnz >= 100 && t.nnz <= 10000),
+				filter_function = t -> (
+					t.nnz >= 100 &&
+					t.nnz <= 10000
+				),
 			),
 		),
 	),

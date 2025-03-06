@@ -51,7 +51,8 @@ function ReplacementValues(type_name::String, df::DataFrame)
 		return ReplacementValues(;
 			zero = 0.0,
 			negative_infinity = 0.0,
-			positive_infinity = 0.0)
+			positive_infinity = 0.0,
+		)
 	end
 
 	# Sort the vector

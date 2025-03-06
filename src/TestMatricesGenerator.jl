@@ -156,9 +156,7 @@ function generate_stochastic_test_matrices(;
 		M = M + M'
 		dropzeros!(M)
 
-		test_matrices[i] = TestMatrices.TestMatrix(M,
-			string(i),
-		)
+		test_matrices[i] = TestMatrices.TestMatrix(M, string(i))
 	end
 
 	# print the file name we are writing to standard output

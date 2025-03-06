@@ -20,7 +20,10 @@ write_experiment_results(
 			number_types = [Float32, LinearTakum32, Posit32],
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_social;
-				filter_function = t -> (t.nnz >= 100 && t.nnz <= 10000),
+				filter_function = t -> (
+					t.nnz >= 100 &&
+					t.nnz <= 10000
+				),
 			),
 		),
 	),

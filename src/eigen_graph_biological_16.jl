@@ -18,10 +18,18 @@ write_experiment_results(
 				eigenvalue_count = 10,
 				tolerance = 1e-4,
 			),
-			number_types = [BFloat16, Float16, LinearTakum16, Posit16],
+			number_types = [
+				BFloat16,
+				Float16,
+				LinearTakum16,
+				Posit16,
+			],
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_biological;
-				filter_function = t -> (t.nnz >= 100 && t.nnz <= 10000),
+				filter_function = t -> (
+					t.nnz >= 100 &&
+					t.nnz <= 10000
+				),
 			),
 		),
 	),

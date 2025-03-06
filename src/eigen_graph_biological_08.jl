@@ -22,7 +22,10 @@ write_experiment_results(
 			number_types = [Float8_4, LinearTakum8, Posit8],
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_biological;
-				filter_function = t -> (t.nnz >= 100 && t.nnz <= 10000),
+				filter_function = t -> (
+					t.nnz >= 100 &&
+					t.nnz <= 10000
+				),
 			),
 		),
 	),

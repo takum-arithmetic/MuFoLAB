@@ -26,9 +26,16 @@ let
 			# edge list file
 			graph = nothing
 			try
-				graph = loadgraph(graph_file, "graph_key", EdgeListFormat())
+				graph = loadgraph(
+					graph_file,
+					"graph_key",
+					EdgeListFormat(),
+				)
 			catch e
-				println(stderr, "Failed reading $(graph_file)")
+				println(
+					stderr,
+					"Failed reading $(graph_file)",
+				)
 				rethrow(e)
 			end
 
@@ -38,11 +45,18 @@ let
 			try
 				A = Float64.(mmread(graph_file))
 			catch e
-				println(stderr, "Failed reading $(graph_file)")
+				println(
+					stderr,
+					"Failed reading $(graph_file)",
+				)
 				rethrow(e)
 			end
 		else
-			throw(ArgumentError("Invalid file type in graph list"))
+			throw(
+				ArgumentError(
+					"Invalid file type in graph list",
+				),
+			)
 		end
 
 		# check if the adjacency matrix is non-square
@@ -61,7 +75,14 @@ let
 					# to obtain a mxm matrix, assuming
 					# the input data intended to just
 					# drop isolated nodes
-					A = hcat(A, zeros(m, m - n)) 
+					A = hcat(
+						A,
+						zeros(
+							m,
+							m -
+							n,
+						),
+					)
 				end
 			else # n > m
 				if norm(A[1:m, (m + 1):n], 1) == 0.0
@@ -72,7 +93,14 @@ let
 					# to obtain a mxm matrix, assuming
 					# the input data intended to just
 					# drop isolated nodes
-					A = vcat(A, zeros(n - m, n))
+					A = vcat(
+						A,
+						zeros(
+							n -
+							m,
+							n,
+						),
+					)
 				end
 			end
 		end
@@ -84,9 +112,14 @@ let
 
 		# compute the degree matrix, ignoring isolated nodes such
 		# that they are assigned eigenvalue 1
-		degree_vector = sum(A, dims = 2)[:]
-		D_inv_sqrt = Diagonal(ifelse.(degree_vector .> 0,
-			1.0 ./ sqrt.(abs.(degree_vector)), 0.0))
+		degree_vector = sum(A; dims = 2)[:]
+		D_inv_sqrt = Diagonal(
+			ifelse.(
+				degree_vector .> 0,
+				1.0 ./ sqrt.(abs.(degree_vector)),
+				0.0,
+			),
+		)
 
 		# compute the normalised Laplacian
 		Lnorm = I - D_inv_sqrt * A * D_inv_sqrt
@@ -102,7 +135,12 @@ let
 		# of the fact that the graph file name always has the
 		# same format
 		t = TestMatrices.TestMatrix(
-			split(graph_file[(1 + length("out/graphs/")):end], ".")[1],
+			split(
+				graph_file[(1 + length(
+					"out/graphs/",
+				)):end],
+				".",
+			)[1],
 			Lnorm,
 			size(Lnorm, 1),
 			size(Lnorm, 2),

@@ -672,11 +672,18 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 		# We just carry on here as divergence in Float128 implies
 		# divergence in any smaller types.
 		println(stderr, "Eigenvalues are unconverged...")
-		
+
 		return EigenExperimentPreparation(;
 			start_vector_exact = start_vector_exact,
-			eigenvalues_exact = zeros(Float128, parameters.eigenvalue_count),
-			eigenvectors_exact = zeros(Float128, size(A, 1), parameters.eigenvalue_count)
+			eigenvalues_exact = zeros(
+				Float128,
+				parameters.eigenvalue_count,
+			),
+			eigenvectors_exact = zeros(
+				Float128,
+				size(A, 1),
+				parameters.eigenvalue_count,
+			),
 		)
 	end
 
@@ -703,12 +710,24 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 	# we need to normalise them in some way. We do that by looking
 	# at the signs of the respective first entries, and flipping the
 	# respective eigenvector when the first entry is negative.
-	eigenvectors_exact_firstsigns = (Float128(1.0) .- Float128(2.0) .* (decomposition.Q[1, 1:parameters.eigenvalue_count] .< 0.0))'
+	eigenvectors_exact_firstsigns =
+		(
+			Float128(1.0) .-
+			Float128(2.0) .* (
+				decomposition.Q[
+					1,
+					1:(parameters.eigenvalue_count),
+				] .< 0.0
+			)
+		)'
 
 	return EigenExperimentPreparation(;
 		start_vector_exact = start_vector_exact,
-		eigenvalues_exact = decomposition.eigenvalues[1:parameters.eigenvalue_count],
-		eigenvectors_exact = decomposition.Q[:,1:parameters.eigenvalue_count] .* eigenvectors_exact_firstsigns,
+		eigenvalues_exact = decomposition.eigenvalues[1:(parameters.eigenvalue_count)],
+		eigenvectors_exact = decomposition.Q[
+			:,
+			1:(parameters.eigenvalue_count),
+		] .* eigenvectors_exact_firstsigns,
 	)
 end
 
@@ -767,15 +786,26 @@ function get_measurement(
 	# decomposition yields the eigenvectors directly.
 	# Crop them to the number of 'requested' eigenvalues and
 	# eigenvectors, as the process may yield more.
-	eigenvalues_approx = decomposition.eigenvalues[1:parameters.eigenvalue_count]
+	eigenvalues_approx = decomposition.eigenvalues[1:(parameters.eigenvalue_count)]
 
 	# The eigenvectors are the columns of Q, because A is symmetric.
 	# However, eigenvectors are only unique up to their signs, so
 	# we need to normalise them in some way. We do that by looking
 	# at the signs of the respective first entries, and flipping the
 	# respective eigenvector when the first entry is negative.
-	eigenvectors_approx_firstsigns = (T(1.0) .- T(2.0) .* (decomposition.Q[1, 1:parameters.eigenvalue_count] .< 0.0))'
-	eigenvectors_approx = decomposition.Q[:,1:parameters.eigenvalue_count] .* eigenvectors_approx_firstsigns
+	eigenvectors_approx_firstsigns =
+		(
+			T(1.0) .-
+			T(2.0) .* (
+				decomposition.Q[
+					1,
+					1:(parameters.eigenvalue_count),
+				] .< 0.0
+			)
+		)'
+	eigenvectors_approx =
+		decomposition.Q[:, 1:(parameters.eigenvalue_count)] .*
+		eigenvectors_approx_firstsigns
 
 	# compute eigenvalue errors
 	exact = preparation.eigenvalues_exact
@@ -795,7 +825,7 @@ function get_measurement(
 	eigenvectors_absolute_error = norm(err, 2)
 	eigenvectors_relative_error = norm(err, 2) / norm(exact, 2)
 	eigenvectors_logarithmic_relative_error = Float128(0.0)
-		#get_logarithmic_relative_error(approx, exact)
+	#get_logarithmic_relative_error(approx, exact)
 
 	return EigenExperimentMeasurement(
 		eigenvalues_absolute_error,
