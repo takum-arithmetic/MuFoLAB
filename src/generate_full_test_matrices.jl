@@ -1,8 +1,5 @@
 # See LICENSE file for copyright and license details.
 using Suppressor
-@suppress_err begin
-	using MatrixDepot
-end
 
 push!(LOAD_PATH, "src/")
 @suppress_err begin
