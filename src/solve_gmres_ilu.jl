@@ -4,8 +4,8 @@ using SparseArrays
 push!(LOAD_PATH, "src/")
 using Crutches
 using Experiments
-using Float8s
 using LinearAlgebra
+using MicroFloatingPoints
 using IterativeSolvers
 using IncompleteLU
 using SparseArrays
@@ -17,7 +17,7 @@ function solve_gmres_ilu(
 	preparation::SolverExperimentPreparation,
 )
 	relative_tolerances = Dict(
-		1 => eltype(A)(Float64(sqrt(eps(Float8_4)))),
+		1 => eltype(A)(Float64(sqrt(eps(Floatmu{4,3})))),
 		2 => eltype(A)(Float64(sqrt(eps(Float16)))),
 		4 => eltype(A)(Float64(sqrt(eps(Float32)))),
 		8 => eltype(A)(Float64(sqrt(eps(Float64)))),

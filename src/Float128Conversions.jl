@@ -2,8 +2,8 @@
 module Float128Conversions
 
 using BFloat16s
-using Float8s
 using Quadmath
+using MicroFloatingPoints
 using Posits
 using Takums
 
@@ -577,8 +577,8 @@ Quadmath.Float128(x::Posit32) = Float128(Float64(x))
 BFloat16s.BFloat16(x::Float128) = BFloat16(Float32(x))
 Quadmath.Float128(x::BFloat16) = Float128(Float32(x))
 
-# For float8_4 use Float32 as a common ground, as well
-Float8s.Float8_4(x::Float128) = Float8_4(Float32(x))
-Quadmath.Float128(x::Float8_4) = Float128(Float32(x))
+# For microfloats use Float32 as a common ground, as well
+Quadmath.Float128(x::Floatmu{szE, szf}) where {szE, szf} = Float128(Float32(x))
+MicroFloatingPoints.Floatmu{szE, szf}(x::Float128) where {szE, szf} = Floatmu{szE, szf}(Float32(x))
 
 end

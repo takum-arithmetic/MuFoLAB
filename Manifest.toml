@@ -2,7 +2,7 @@
 
 julia_version = "1.12.0-DEV"
 manifest_format = "2.0"
-project_hash = "455da7cd9aa0dca9af67089838a665986bdda41c"
+project_hash = "e0fc9982c56c45ea9f7eba039664544166ed84ac"
 
 [[deps.AliasTables]]
 deps = ["PtrArrays", "Random"]
@@ -197,11 +197,6 @@ weakdeps = ["PDMats", "SparseArrays", "Statistics"]
     FillArraysPDMatsExt = "PDMats"
     FillArraysSparseArraysExt = "SparseArrays"
     FillArraysStatisticsExt = "Statistics"
-
-[[deps.Float8s]]
-git-tree-sha1 = "422fe4c68df8b4a0507cc6675921c617c175a3a3"
-uuid = "81dfefd7-55b0-40c6-a251-db853704e186"
-version = "0.1.1"
 
 [[deps.Future]]
 deps = ["Random"]
@@ -469,6 +464,20 @@ version = "1.5.0"
     Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
     LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
     SimpleWeightedGraphs = "47aef6b3-ad0c-573a-a1e2-d07658019622"
+
+[[deps.MicroFloatingPoints]]
+deps = ["Printf", "Random"]
+git-tree-sha1 = "3a46b5646979b751a4f863d51a8aa9515225a8c8"
+uuid = "6e0295d3-a2ae-4d9e-ab31-7b55fc0f4333"
+version = "2.0.0"
+
+    [deps.MicroFloatingPoints.extensions]
+    MFPPyPlot = "PyPlot"
+    MFPPythonPlot = "PythonPlot"
+
+    [deps.MicroFloatingPoints.weakdeps]
+    PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
+    PythonPlot = "274fc56d-3b97-40fa-a1cd-1b4a50311bf9"
 
 [[deps.MicrosoftMPI_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
