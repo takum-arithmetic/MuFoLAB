@@ -5,11 +5,12 @@ push!(LOAD_PATH, "src/")
 using ArnoldiMethod
 using Base.Threads
 using BFloat16s
+using Crutches
 using CSV
 using DataFrames
 using Float128Conversions
-using Float8s
 using LinearAlgebra
+using MicroFloatingPoints
 import LU
 import QR
 using Printf
@@ -36,10 +37,14 @@ export AbstractExperimentParameters,
 	MPIRExperimentMeasurement,
 	EigenExperimentParameters,
 	EigenExperimentPreparation,
-	EigenExperimentMeasurement
+	EigenExperimentMeasurement,
+	ConversionExperimentParameters,
+	ConversionExperimentPreparation,
+	ConversionExperimentMeasurement
 
 all_number_types = [
-	Float8_4,
+	Floatmu{4, 3},
+	Floatmu{5, 2},
 	#Takum8,
 	LinearTakum8,
 	Posit8,
@@ -835,6 +840,49 @@ function get_measurement(
 		eigenvectors_relative_error,
 		eigenvectors_logarithmic_relative_error,
 		history.mvproducts,
+	)
+end
+
+# the conversion experiments determine the error witnessed by converting
+# a given matrix to a respective type.
+@kwdef struct ConversionExperimentParameters <: AbstractExperimentParameters
+	# no parameters
+end
+
+@kwdef struct ConversionExperimentPreparation <: AbstractExperimentPreparation
+	# no preparation
+end
+
+function get_preparation(parameters::ConversionExperimentParameters, A::SparseMatrixCSC{Float64, Int64})
+	return ConversionExperimentPreparation()
+end
+
+struct ConversionExperimentMeasurement <: AbstractExperimentMeasurement
+	absolute_error::Float128
+	relative_error::Float128
+	logarithmic_relative_error::Float128
+end
+
+function get_measurement(
+	parameters::ConversionExperimentParameters,
+	::Type{T},
+	A::SparseMatrixCSC{Float64, Int64},
+	preparation::ConversionExperimentPreparation,
+) where {T <: AbstractFloat}
+	# compute errors by converting the matrix to the target type,
+	# expand them all as vectors for easier processing
+	exact = (Float128.(A))[:]
+	approx = (Float128.(T.(A)))[:]
+	err = exact - approx
+
+	absolute_error = norm(err, 2)
+	relative_error = norm(err, 2) / norm(exact, 2)
+	logarithmic_relative_error = get_logarithmic_relative_error(approx, exact)
+
+	return ConversionExperimentMeasurement(
+		absolute_error,
+		relative_error,
+		logarithmic_relative_error,
 	)
 end
 

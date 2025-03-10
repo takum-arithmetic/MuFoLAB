@@ -38,6 +38,7 @@ EXPERIMENT =\
 	src/eigen_smallest_16\
 	src/eigen_smallest_32\
 	src/eigen_smallest_64\
+	src/conversion\
 	src/solve_gmres_ilu\
 	src/solve_lu\
 	src/solve_mpir_float_08_16_32\
@@ -91,6 +92,7 @@ src/eigen_smallest_08.output: src/eigen_smallest_08.jl src/Experiments.jl src/Fl
 src/eigen_smallest_16.output: src/eigen_smallest_16.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 src/eigen_smallest_32.output: src/eigen_smallest_32.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 src/eigen_smallest_64.output: src/eigen_smallest_64.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
+src/conversion.output: src/conversion.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
 src/solve_gmres_ilu.output: src/solve_gmres_ilu.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 src/solve_lu.output: src/solve_lu.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 src/solve_mpir_float_08_16_32.output: src/solve_mpir_float_08_16_32.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
@@ -127,6 +129,7 @@ src/eigen_smallest_08.output_sorted: src/eigen_smallest_08.output src/sort_csv.j
 src/eigen_smallest_16.output_sorted: src/eigen_smallest_16.output src/sort_csv.jl
 src/eigen_smallest_32.output_sorted: src/eigen_smallest_32.output src/sort_csv.jl
 src/eigen_smallest_64.output_sorted: src/eigen_smallest_64.output src/sort_csv.jl
+src/conversion.output_sorted: src/conversion.output src/sort_csv.jl
 src/solve_gmres_ilu.output_sorted: src/solve_gmres_ilu.output src/sort_csv.jl
 src/solve_lu.output_sorted: src/solve_lu.output src/sort_csv.jl
 src/solve_mpir_float_08_16_32.output_sorted: src/solve_mpir_float_08_16_32.output src/sort_csv.jl
