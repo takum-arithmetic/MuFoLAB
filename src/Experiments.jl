@@ -9,6 +9,7 @@ using Crutches
 using CSV
 using DataFrames
 using Float128Conversions
+using Hungarian
 using LinearAlgebra
 using MicroFloatingPoints
 import LU
@@ -627,6 +628,8 @@ end
 	start_vector_exact::Vector{Float128}
 	eigenvalues_exact::Vector{Float128}
 	eigenvectors_exact::Matrix{Float128} # column vectors of matrix
+	eigenvectors_exact_norms::Vector{Float128}
+	eigenvectors_exact_dominant_indices::Vector{Int} # for each eigenvector, the absolute largest entry indices
 end
 
 function get_pseudorandom_v(A::SparseMatrixCSC{Float64, Int64})
@@ -689,6 +692,14 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 				size(A, 1),
 				parameters.eigenvalue_count,
 			),
+			eigenvectors_exact_norms = zeros(
+				Float128,
+				parameters.eigenvalue_count,
+			),
+			eigenvectors_exact_dominant_indices = zeros(
+				Int,
+				parameters.eigenvalue_count,
+			),
 		)
 	end
 
@@ -713,26 +724,52 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 	# The eigenvectors are the columns of Q, because A is symmetric.
 	# However, eigenvectors are only unique up to their signs, so
 	# we need to normalise them in some way. We do that by looking
-	# at the signs of the respective first entries, and flipping the
-	# respective eigenvector when the first entry is negative.
-	eigenvectors_exact_firstsigns =
-		(
-			Float128(1.0) .-
-			Float128(2.0) .* (
-				decomposition.Q[
-					1,
-					1:(parameters.eigenvalue_count),
-				] .< 0.0
+	# at the signs of the absolute largest entry of each eigenvector,
+	# and flipping the respective eigenvector when the entry is
+	# negative.
+	eigenvectors_exact = decomposition.Q[:, 1:(parameters.eigenvalue_count)]
+
+	# first determine the indices (this is a bit hacky and we mainly
+	# work around getting the index from CartesianIndex() objects
+	# spat out by argmax())
+	eigenvectors_exact_dominant_indices =
+		getfield.(
+			getproperty.(
+				argmax(
+					abs.(
+						eigenvectors_exact
+					);
+					dims = 1,
+				)[:],
+				:I,
+			),
+			1,
+		)
+
+	# now select those entries and obtain the signs of them, so
+	# we can, in the next step, flip every vector where the dominant
+	# entry is negative. It is safe to assume here that the dominant
+	# entry is always non-zero.
+	eigenvectors_exact_dominant_signs =
+		sign.(
+			getindex.(
+				Ref(eigenvectors_exact),
+				eigenvectors_exact_dominant_indices,
+				1:(parameters.eigenvalue_count),
 			)
-		)'
+		)
 
 	return EigenExperimentPreparation(;
 		start_vector_exact = start_vector_exact,
 		eigenvalues_exact = decomposition.eigenvalues[1:(parameters.eigenvalue_count)],
-		eigenvectors_exact = decomposition.Q[
-			:,
-			1:(parameters.eigenvalue_count),
-		] .* eigenvectors_exact_firstsigns,
+		eigenvectors_exact = Matrix(
+			(
+				eigenvectors_exact' .*
+				eigenvectors_exact_dominant_signs
+			)',
+		),
+		eigenvectors_exact_norms = norm.(eachcol(eigenvectors_exact)),
+		eigenvectors_exact_dominant_indices = eigenvectors_exact_dominant_indices,
 	)
 end
 
@@ -794,23 +831,41 @@ function get_measurement(
 	eigenvalues_approx = decomposition.eigenvalues[1:(parameters.eigenvalue_count)]
 
 	# The eigenvectors are the columns of Q, because A is symmetric.
-	# However, eigenvectors are only unique up to their signs, so
-	# we need to normalise them in some way. We do that by looking
-	# at the signs of the respective first entries, and flipping the
-	# respective eigenvector when the first entry is negative.
-	eigenvectors_approx_firstsigns =
-		(
-			T(1.0) .-
-			T(2.0) .* (
-				decomposition.Q[
-					1,
-					1:(parameters.eigenvalue_count),
-				] .< 0.0
+	eigenvectors_approx = decomposition.Q[:, 1:(parameters.eigenvalue_count)]
+
+	# Eigenvalues can be close to each other and there may be swaps
+	# in the eigenvectors, invalidating our results. What we do is
+	# look at the exact eigenvectors and find the best permutation
+	# of the approximate eigenvectors such that, overall, the
+	# cosine similarity of each respective vector is maximised.
+	# This is done via the hungarian algorithm.
+	eigenvectors_approx_norms = norm.(eachcol(Float128.(eigenvectors_approx)))
+	cosine_similarity_matrix =
+		abs.(
+			preparation.eigenvectors_exact' *
+			Float128.(eigenvectors_approx)
+		) ./
+		(preparation.eigenvectors_exact_norms * eigenvectors_approx_norms')
+	best_permutation, = hungarian(-cosine_similarity_matrix)
+	eigenvectors_approx = eigenvectors_approx[:, best_permutation]
+
+	# Eigenvectors are only unique up to their signs, so
+	# we need to normalise them in some way. Assuming we matched
+	# well in the previous step, we use the prepared indices of
+	# largest elements and use their sign as a reference to flip
+	# the signs of the vectors
+	eigenvectors_approx_dominant_signs =
+		sign.(
+			getindex.(
+				Ref(eigenvectors_approx),
+				preparation.eigenvectors_exact_dominant_indices,
+				1:(parameters.eigenvalue_count),
 			)
-		)'
+		)
+
+	# multiply the respective columns with the signs
 	eigenvectors_approx =
-		decomposition.Q[:, 1:(parameters.eigenvalue_count)] .*
-		eigenvectors_approx_firstsigns
+		Matrix((eigenvectors_approx' .* eigenvectors_approx_dominant_signs)')
 
 	# compute eigenvalue errors
 	exact = preparation.eigenvalues_exact
@@ -853,7 +908,10 @@ end
 	# no preparation
 end
 
-function get_preparation(parameters::ConversionExperimentParameters, A::SparseMatrixCSC{Float64, Int64})
+function get_preparation(
+	parameters::ConversionExperimentParameters,
+	A::SparseMatrixCSC{Float64, Int64},
+)
 	return ConversionExperimentPreparation()
 end
 
