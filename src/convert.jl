@@ -14,9 +14,8 @@ write_experiment_results(
 			number_types = Experiments.all_number_types,
 			test_matrices = TestMatrices.get_test_matrices(
 				:sparse;
-				filter_function = t -> (
-					t.nnz <= 50000
-				),
+				filter_function = t ->
+					(t.nnz <= 50000),
 			),
 		),
 	),

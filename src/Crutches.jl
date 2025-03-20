@@ -13,6 +13,8 @@ Base.trunc(::Type{Integer}, f::BFloat16) = Base.trunc(Int, f)
 Integer(x::Floatmu{szE, szf}) where {szE, szf} = Integer(Float32(x))
 
 # overwrite nameof for microfloats
-Base.nameof(::Type{Floatmu{szE,szf}}) where {szE,szf} = "Float" * string(1 + szE + szf) * "_" * string(szE)
+function Base.nameof(::Type{Floatmu{szE, szf}}) where {szE, szf}
+	return "Float" * string(1 + szE + szf) * "_" * string(szE)
+end
 
 end

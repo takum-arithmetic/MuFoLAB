@@ -13,7 +13,7 @@ write_experiment_results(
 	ExperimentResults(
 		Experiment(;
 			parameters = MPIRExperimentParameters(;
-				low_precision_type = Floatmu{4,3},
+				low_precision_type = Floatmu{4, 3},
 				working_precision_type = Float16,
 				high_precision_type = Float32,
 				tolerance = 1.0e-03,

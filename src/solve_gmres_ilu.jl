@@ -17,7 +17,7 @@ function solve_gmres_ilu(
 	preparation::SolverExperimentPreparation,
 )
 	relative_tolerances = Dict(
-		1 => eltype(A)(Float64(sqrt(eps(Floatmu{4,3})))),
+		1 => eltype(A)(Float64(sqrt(eps(Floatmu{4, 3})))),
 		2 => eltype(A)(Float64(sqrt(eps(Float16)))),
 		4 => eltype(A)(Float64(sqrt(eps(Float32)))),
 		8 => eltype(A)(Float64(sqrt(eps(Float64)))),
