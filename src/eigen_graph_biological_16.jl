@@ -16,6 +16,7 @@ write_experiment_results(
 			parameters = EigenExperimentParameters(;
 				which = :LR,
 				eigenvalue_count = 10,
+				eigenvalue_buffer_count = 5,
 				tolerance = 1e-4,
 			),
 			number_types = [
@@ -27,7 +28,7 @@ write_experiment_results(
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_biological;
 				filter_function = t -> (
-					t.nnz >= 100 &&
+					t.n >= 15 &&
 					t.nnz <= 10000
 				),
 			),

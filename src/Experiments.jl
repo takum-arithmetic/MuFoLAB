@@ -621,6 +621,7 @@ end
 @kwdef struct EigenExperimentParameters <: AbstractExperimentParameters
 	which::Symbol # :LM (largest abs), :LR (most pos), :SR (most neg)
 	eigenvalue_count::Int64
+	eigenvalue_buffer_count::Int64
 	tolerance::Float128
 end
 
@@ -664,7 +665,8 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 	# is mathematically equivalent but more complicated to implement.
 	decomposition, history = partialschur(
 		Float128.(A);
-		nev = parameters.eigenvalue_count,
+		nev = parameters.eigenvalue_count +
+		      parameters.eigenvalue_buffer_count,
 		tol = 1e-24,
 		which = parameters.which,
 		v1 = start_vector_exact,
@@ -685,20 +687,24 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 			start_vector_exact = start_vector_exact,
 			eigenvalues_exact = zeros(
 				Float128,
-				parameters.eigenvalue_count,
+				parameters.eigenvalue_count +
+				parameters.eigenvalue_buffer_count,
 			),
 			eigenvectors_exact = zeros(
 				Float128,
 				size(A, 1),
-				parameters.eigenvalue_count,
+				parameters.eigenvalue_count +
+				parameters.eigenvalue_buffer_count,
 			),
 			eigenvectors_exact_norms = zeros(
 				Float128,
-				parameters.eigenvalue_count,
+				parameters.eigenvalue_count +
+				parameters.eigenvalue_buffer_count,
 			),
 			eigenvectors_exact_dominant_indices = zeros(
 				Int,
-				parameters.eigenvalue_count,
+				parameters.eigenvalue_count +
+				parameters.eigenvalue_buffer_count,
 			),
 		)
 	end
@@ -727,7 +733,10 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 	# at the signs of the absolute largest entry of each eigenvector,
 	# and flipping the respective eigenvector when the entry is
 	# negative.
-	eigenvectors_exact = decomposition.Q[:, 1:(parameters.eigenvalue_count)]
+	eigenvectors_exact = decomposition.Q[
+		:,
+		1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
+	]
 
 	# first determine the indices (this is a bit hacky and we mainly
 	# work around getting the index from CartesianIndex() objects
@@ -755,13 +764,13 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 			getindex.(
 				Ref(eigenvectors_exact),
 				eigenvectors_exact_dominant_indices,
-				1:(parameters.eigenvalue_count),
+				1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
 			)
 		)
 
 	return EigenExperimentPreparation(;
 		start_vector_exact = start_vector_exact,
-		eigenvalues_exact = decomposition.eigenvalues[1:(parameters.eigenvalue_count)],
+		eigenvalues_exact = decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)],
 		eigenvectors_exact = Matrix(
 			(
 				eigenvectors_exact' .*
@@ -799,7 +808,8 @@ function get_measurement(
 		# compute the requested eigenvalues and eigenvectors
 		decomposition, history = partialschur(
 			A_approx;
-			nev = parameters.eigenvalue_count,
+			nev = parameters.eigenvalue_count +
+			      parameters.eigenvalue_buffer_count,
 			tol = T(parameters.tolerance),
 			which = parameters.which,
 			v1 = start_vector_approx,
@@ -828,10 +838,14 @@ function get_measurement(
 	# decomposition yields the eigenvectors directly.
 	# Crop them to the number of 'requested' eigenvalues and
 	# eigenvectors, as the process may yield more.
-	eigenvalues_approx = decomposition.eigenvalues[1:(parameters.eigenvalue_count)]
+	eigenvalues_approx =
+		decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)]
 
 	# The eigenvectors are the columns of Q, because A is symmetric.
-	eigenvectors_approx = decomposition.Q[:, 1:(parameters.eigenvalue_count)]
+	eigenvectors_approx = decomposition.Q[
+		:,
+		1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
+	]
 
 	# Eigenvalues can be close to each other and there may be swaps
 	# in the eigenvectors, invalidating our results. What we do is
@@ -859,7 +873,7 @@ function get_measurement(
 			getindex.(
 				Ref(eigenvectors_approx),
 				preparation.eigenvectors_exact_dominant_indices,
-				1:(parameters.eigenvalue_count),
+				1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
 			)
 		)
 
@@ -867,9 +881,20 @@ function get_measurement(
 	eigenvectors_approx =
 		Matrix((eigenvectors_approx' .* eigenvectors_approx_dominant_signs)')
 
+	# Up to now we handled the eigenvalues/eigenvectors as a count
+	# of 'eigenvalue_count' including the 'eigenvalue_buffer_count'.
+	# We did that as it may be that in our 'zone of interest' there
+	# are closely adjacent eigenvalues, and having a small buffer
+	# and including it in the hungarian matching saves us from a
+	# potential case where otherwise a 'matching vector' might
+	# be outside our set of desired eigenvectors.
+	#
+	# Now we can discard this buffer zone and we compute the errors
+	# only in our eigenvalue count.
+
 	# compute eigenvalue errors
-	exact = preparation.eigenvalues_exact
-	approx = Float128.(eigenvalues_approx)
+	exact = preparation.eigenvalues_exact[1:(parameters.eigenvalue_count)]
+	approx = Float128.(eigenvalues_approx[1:(parameters.eigenvalue_count)])
 	err = exact - approx
 
 	eigenvalues_absolute_error = norm(err, 2)
@@ -878,8 +903,8 @@ function get_measurement(
 		get_logarithmic_relative_error(approx, exact)
 
 	# compute eigenvector errors
-	exact = preparation.eigenvectors_exact
-	approx = Float128.(eigenvectors_approx)
+	exact = preparation.eigenvectors_exact[:, 1:(parameters.eigenvalue_count)]
+	approx = Float128.(eigenvectors_approx[:, 1:(parameters.eigenvalue_count)])
 	err = exact - approx
 
 	eigenvectors_absolute_error = norm(err, 2)
