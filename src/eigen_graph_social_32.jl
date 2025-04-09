@@ -15,15 +15,15 @@ write_experiment_results(
 			parameters = EigenExperimentParameters(;
 				which = :LR,
 				eigenvalue_count = 10,
-				eigenvalue_buffer_count = 5,
+				eigenvalue_buffer_count = 2,
 				tolerance = 1e-8,
 			),
 			number_types = [Float32, LinearTakum32, Posit32],
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_social;
 				filter_function = t -> (
-					t.n >= 15 &&
-					t.nnz <= 10000
+					t.n >= 12 &&
+					t.nnz <= 20000
 				),
 			),
 		),

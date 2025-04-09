@@ -134,8 +134,8 @@ let
 
 		# generate a matrix of measurement identifiers ("matrix_name[type_name]")
 		identifiers = [
-			m.name * "[" * String(nameof(t)) * "]" for t in number_types,
-			m in test_matrices
+			m.name * "[" * String(nameof(t)) * "]" for
+			t in number_types, m in test_matrices
 		]
 
 		# get a list of identifiers that are currently active
@@ -179,7 +179,23 @@ function ExperimentResults(experiment::Experiment)
 
 		# run the preparation function that computes any general
 		# things that do not change with each number type
-		preparation = get_preparation(experiment.parameters, t.M)
+		local preparation
+		try
+			preparation = get_preparation(
+				experiment.parameters,
+				t.M,
+			)
+		catch e
+			# Something went wrong in the preparation, making
+			# it an unsuitable example. We just set all
+			# the types to a measurement error and to done
+			measurement[1:length(experiment.number_types), i] .=
+				MatrixSingular::MeasurementError
+			progress[1:length(experiment.number_types), i] .=
+				done
+
+			continue
+		end
 
 		@threads for j in 1:length(experiment.number_types)
 			# set the current problem to active
@@ -243,7 +259,7 @@ function write_experiment_results(experiment_results::ExperimentResults)
 	local measurement_type_instance
 
 	valid_measurements = experiment_results.measurement[typeof.(
-		experiment_results.measurement
+		experiment_results.measurement,
 	) .<: AbstractExperimentMeasurement]
 
 	if length(valid_measurements) == 0
@@ -523,10 +539,9 @@ function get_measurement(
 	b_high = parameters.high_precision_type.(preparation.b_exact[permutation_rows])
 
 	# obtain PAS, which is A with row- and column permutations
-	PAS_working =
-		parameters.working_precision_type.(
-			A[permutation_rows, permutation_columns]
-		)
+	PAS_working = parameters.working_precision_type.(
+		A[permutation_rows, permutation_columns],
+	)
 	PAS_high = parameters.high_precision_type.(A[permutation_rows, permutation_columns])
 
 	# initialise solution vector x to zero, in working precision
@@ -570,7 +585,7 @@ function get_measurement(
 				U_working \ (
 					L_working \
 					parameters.working_precision_type.(
-						residual_high
+						residual_high,
 					)
 				)
 		catch e
@@ -667,7 +682,7 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 		Float128.(A);
 		nev = parameters.eigenvalue_count +
 		      parameters.eigenvalue_buffer_count,
-		tol = 1e-24,
+		tol = 1e-20,
 		which = parameters.which,
 		v1 = start_vector_exact,
 	)
@@ -679,34 +694,9 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 	end
 
 	if !history.converged
-		# We just carry on here as divergence in Float128 implies
-		# divergence in any smaller types.
-		println(stderr, "Eigenvalues are unconverged...")
-
-		return EigenExperimentPreparation(;
-			start_vector_exact = start_vector_exact,
-			eigenvalues_exact = zeros(
-				Float128,
-				parameters.eigenvalue_count +
-				parameters.eigenvalue_buffer_count,
-			),
-			eigenvectors_exact = zeros(
-				Float128,
-				size(A, 1),
-				parameters.eigenvalue_count +
-				parameters.eigenvalue_buffer_count,
-			),
-			eigenvectors_exact_norms = zeros(
-				Float128,
-				parameters.eigenvalue_count +
-				parameters.eigenvalue_buffer_count,
-			),
-			eigenvectors_exact_dominant_indices = zeros(
-				Int,
-				parameters.eigenvalue_count +
-				parameters.eigenvalue_buffer_count,
-			),
-		)
+		# Divergence in Float128 implies divergence in any smaller
+		# type. We return nothing and later check for it
+		throw(ArgumentError("Reference computation did not converge"))
 	end
 
 	# given all eigenvalues are real, we can directly obtain the
@@ -741,32 +731,22 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 	# first determine the indices (this is a bit hacky and we mainly
 	# work around getting the index from CartesianIndex() objects
 	# spat out by argmax())
-	eigenvectors_exact_dominant_indices =
-		getfield.(
-			getproperty.(
-				argmax(
-					abs.(
-						eigenvectors_exact
-					);
-					dims = 1,
-				)[:],
-				:I,
-			),
-			1,
-		)
+	eigenvectors_exact_dominant_indices = getfield.(
+		getproperty.(argmax(abs.(eigenvectors_exact); dims = 1)[:], :I),
+		1,
+	)
 
 	# now select those entries and obtain the signs of them, so
 	# we can, in the next step, flip every vector where the dominant
 	# entry is negative. It is safe to assume here that the dominant
 	# entry is always non-zero.
-	eigenvectors_exact_dominant_signs =
-		sign.(
-			getindex.(
-				Ref(eigenvectors_exact),
-				eigenvectors_exact_dominant_indices,
-				1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
-			)
-		)
+	eigenvectors_exact_dominant_signs = sign.(
+		getindex.(
+			Ref(eigenvectors_exact),
+			eigenvectors_exact_dominant_indices,
+			1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
+		),
+	)
 
 	return EigenExperimentPreparation(;
 		start_vector_exact = start_vector_exact,
@@ -857,9 +837,17 @@ function get_measurement(
 	cosine_similarity_matrix =
 		abs.(
 			preparation.eigenvectors_exact' *
-			Float128.(eigenvectors_approx)
+			Float128.(eigenvectors_approx),
 		) ./
 		(preparation.eigenvectors_exact_norms * eigenvectors_approx_norms')
+
+	if any(isnan.(cosine_similarity_matrix))
+		# hungarian() does not like matrices containing NaN,
+		# so we just bail out here as it containing NaN only
+		# means that the reference measurement was invalid.
+		return MatrixSingular::MeasurementError
+	end
+
 	best_permutation, = hungarian(-cosine_similarity_matrix)
 	eigenvectors_approx = eigenvectors_approx[:, best_permutation]
 
@@ -868,14 +856,13 @@ function get_measurement(
 	# well in the previous step, we use the prepared indices of
 	# largest elements and use their sign as a reference to flip
 	# the signs of the vectors
-	eigenvectors_approx_dominant_signs =
-		sign.(
-			getindex.(
-				Ref(eigenvectors_approx),
-				preparation.eigenvectors_exact_dominant_indices,
-				1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
-			)
-		)
+	eigenvectors_approx_dominant_signs = sign.(
+		getindex.(
+			Ref(eigenvectors_approx),
+			preparation.eigenvectors_exact_dominant_indices,
+			1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
+		),
+	)
 
 	# multiply the respective columns with the signs
 	eigenvectors_approx =
