@@ -22,8 +22,7 @@ write_experiment_results(
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_biological;
 				filter_function = t -> (
-					t.n >= 12 &&
-					t.nnz <= 20000
+					t.n >= 12
 				),
 			),
 		),

@@ -98,10 +98,10 @@ function graph_get_type_from_name(name::String)
 		],
 		:graph_infrastructure => [
 			"inf/",     # Infrastructure Networks
+			"massive/", # Large-Scale Graphs (Internet)
 			"power/",   # Power Grids
 			"road/",    # Road Networks
 			"tech/",    # Technological Networks
-			"massive/", # Large-Scale Graphs (Internet)
 			"web/",     # Web Graphs
 		],
 		:graph_misc => [
