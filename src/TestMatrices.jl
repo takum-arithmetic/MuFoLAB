@@ -169,11 +169,17 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 	# honour the request for reduced test data
 	if "--reduced-test-data" in ARGS
 		if type == :full || type == :graph
-			# get the first 200
-			test_matrices = test_matrices[1:min(200, end)]
+			# obtain matrices with reasonable size
+			filter!(t -> (t.nnz in 1:10000), test_matrices)
+
+			# get the first 50
+			test_matrices = test_matrices[1:min(50, end)]
 		elseif type == :sparse
 			# obtain matrices with reasonable size
 			filter!(t -> (t.nnz in 1:10000), test_matrices)
+
+			# get the first 50
+			test_matrices = test_matrices[1:min(50, end)]
 		end
 	end
 
