@@ -17,7 +17,7 @@ COMMON =\
 	src/TestMatrices\
 	src/TestMatricesGenerator\
 
-EXPERIMENT =\
+EXPERIMENT_EIGEN =\
 	src/eigen_graph_biological_08\
 	src/eigen_graph_biological_16\
 	src/eigen_graph_biological_32\
@@ -38,7 +38,8 @@ EXPERIMENT =\
 	src/eigen_general_16\
 	src/eigen_general_32\
 	src/eigen_general_64\
-	src/convert\
+
+EXPERIMENT_SOLVE =\
 	src/solve_gmres_ilu\
 	src/solve_lu\
 	src/solve_mpir_float_08_16_32\
@@ -55,6 +56,12 @@ EXPERIMENT =\
 	src/solve_mpir_takum_16_32_64\
 	src/solve_qr\
 
+
+EXPERIMENT =\
+	src/convert\
+	$(EXPERIMENT_EIGEN)\
+	$(EXPERIMENT_SOLVE)\
+
 GENERATOR =\
 	src/generate_full_test_matrices\
 	src/generate_graph_test_matrices\
@@ -64,6 +71,8 @@ GENERATOR =\
 	src/sparse_matrix_condition_numbers\
 
 all: $(EXPERIMENT:=.output_sorted)
+eigen: $(EXPERIMENT_EIGEN:=.output_sorted)
+solve: $(EXPERIMENT_SOLVE:=.output_sorted)
 
 src/generate_full_test_matrices.output: src/generate_full_test_matrices.jl src/TestMatrices.jl config.mk Makefile
 src/generate_graphs.output: src/generate_graphs.sh config.mk Makefile
@@ -88,10 +97,10 @@ src/eigen_graph_misc_08.output: src/eigen_graph_misc_08.jl src/Experiments.jl sr
 src/eigen_graph_misc_16.output: src/eigen_graph_misc_16.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_graph_test_matrices.output config.mk Makefile
 src/eigen_graph_misc_32.output: src/eigen_graph_misc_32.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_graph_test_matrices.output config.mk Makefile
 src/eigen_graph_misc_64.output: src/eigen_graph_misc_64.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_graph_test_matrices.output config.mk Makefile
-src/eigen_general_08.output: src/eigen_general_08.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
-src/eigen_general_16.output: src/eigen_general_16.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
-src/eigen_general_32.output: src/eigen_general_32.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
-src/eigen_general_64.output: src/eigen_general_64.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
+src/eigen_general_08.output: src/eigen_general_08.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
+src/eigen_general_16.output: src/eigen_general_16.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
+src/eigen_general_32.output: src/eigen_general_32.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
+src/eigen_general_64.output: src/eigen_general_64.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
 src/convert.output: src/convert.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output config.mk Makefile
 src/solve_gmres_ilu.output: src/solve_gmres_ilu.jl src/Experiments.jl src/Float128Conversions.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 src/solve_lu.output: src/solve_lu.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
