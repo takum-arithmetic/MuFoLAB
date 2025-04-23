@@ -20,7 +20,7 @@ write_experiment_results(
 			),
 			number_types = [Float32, LinearTakum32, Posit32],
 			test_matrices = TestMatrices.get_test_matrices(
-				:stochastic;
+				:sparse;
 				filter_function = t -> (
 					# quadratic and symmetric, n >= 15
 					t.m == t.n &&
