@@ -34,67 +34,67 @@ while IFS= read -r GRAPH_ID; do
 
 	# check if the graph is blacklisted (malformed, complex, 0-indexing)
 	BLACKLIST="\
-		dynamic/ia-hospital-ward-proximity-attr.edges \
-		ia/ia-hospital-ward-proximity-attr.edges \
-		labeled/escorts.edges \
-		misc/inf-contiguous-usa.edges \
-		misc/cavity15.mtx \
-		misc/dwg961a.mtx \
-		misc/dwg961b.mtx \
-		misc/eco-everglades.txt \
-		misc/eco-florida.txt \
-		misc/eco-mangwet.txt \
-		misc/eco-stmarks.txt \
-		misc/M80PI_n.mtx \
-		misc/mhd1280a.mtx \
-		misc/mhd1280b.mtx \
-		misc/mplate.mtx \
-		misc/qc324.mtx \
-		rand/ba_1k_100k.mtx \
-		rand/ba_1k_10k.mtx \
-		rand/ba_1k_150k.mtx \
-		rand/ba_1k_15k.mtx \
-		rand/ba_1k_20k.mtx \
-		rand/ba_1k_25k.mtx \
-		rand/ba_1k_2k.mtx \
-		rand/ba_1k_30k.mtx \
-		rand/ba_1k_40k.mtx \
-		rand/ba_1k_4k.mtx \
-		rand/ba_1k_50k.mtx \
-		rand/ba_1k_6k.mtx \
-		rand/ba_1k_8k.mtx \
-		rand/er_graph_1k_100k.mtx \
-		rand/er_graph_1k_10k.mtx \
-		rand/er_graph_1k_12k.mtx \
-		rand/er_graph_1k_14k.mtx \
-		rand/er_graph_1k_200k.mtx \
-		rand/er_graph_1k_20k.mtx \
-		rand/er_graph_1k_25k.mtx \
-		rand/er_graph_1k_30k.mtx \
-		rand/er_graph_1k_35k.mtx \
-		rand/er_graph_1k_40k.mtx \
-		rand/er_graph_1k_4k.mtx \
-		rand/er_graph_1k_50k.mtx \
-		rand/er_graph_1k_60k.mtx \
-		rand/er_graph_1k_6k.mtx \
-		rand/er_graph_1k_8k.mtx \
-		rand/geo1k_100k.mtx \
-		rand/geo1k_10k.mtx \
-		rand/geo1k_12k.mtx \
-		rand/geo1k_14k.mtx \
-		rand/geo1k_150k.mtx \
-		rand/geo1k_20k.mtx \
-		rand/geo1k_25k.mtx \
-		rand/geo1k_30k.mtx \
-		rand/geo1k_35k.mtx \
-		rand/geo1k_40k.mtx \
-		rand/geo1k_4k.mtx \
-		rand/geo1k_50k.mtx \
-		rand/geo1k_6k.mtx \
-		rand/geo1k_8k.mtx \
-		rec/rec-movielens-user-tag-10m.edges \
-		soc/soc-firm-hi-tech.txt \
-		tscc/scc_rt_islam.mtx \
+		dynamic/ia-hospital-ward-proximity-attr \
+		ia/ia-hospital-ward-proximity-attr \
+		labeled/escorts \
+		misc/inf-contiguous-usa \
+		misc/cavity15 \
+		misc/dwg961a \
+		misc/dwg961b \
+		misc/eco-everglades \
+		misc/eco-florida \
+		misc/eco-mangwet \
+		misc/eco-stmarks \
+		misc/M80PI_n \
+		misc/mhd1280a \
+		misc/mhd1280b \
+		misc/mplate \
+		misc/qc324 \
+		rand/ba_1k_100k \
+		rand/ba_1k_10k \
+		rand/ba_1k_150k \
+		rand/ba_1k_15k \
+		rand/ba_1k_20k \
+		rand/ba_1k_25k \
+		rand/ba_1k_2k \
+		rand/ba_1k_30k \
+		rand/ba_1k_40k \
+		rand/ba_1k_4k \
+		rand/ba_1k_50k \
+		rand/ba_1k_6k \
+		rand/ba_1k_8k \
+		rand/er_graph_1k_100k \
+		rand/er_graph_1k_10k \
+		rand/er_graph_1k_12k \
+		rand/er_graph_1k_14k \
+		rand/er_graph_1k_200k \
+		rand/er_graph_1k_20k \
+		rand/er_graph_1k_25k \
+		rand/er_graph_1k_30k \
+		rand/er_graph_1k_35k \
+		rand/er_graph_1k_40k \
+		rand/er_graph_1k_4k \
+		rand/er_graph_1k_50k \
+		rand/er_graph_1k_60k \
+		rand/er_graph_1k_6k \
+		rand/er_graph_1k_8k \
+		rand/geo1k_100k \
+		rand/geo1k_10k \
+		rand/geo1k_12k \
+		rand/geo1k_14k \
+		rand/geo1k_150k \
+		rand/geo1k_20k \
+		rand/geo1k_25k \
+		rand/geo1k_30k \
+		rand/geo1k_35k \
+		rand/geo1k_40k \
+		rand/geo1k_4k \
+		rand/geo1k_50k \
+		rand/geo1k_6k \
+		rand/geo1k_8k \
+		rec/rec-movielens-user-tag-10m \
+		soc/soc-firm-hi-tech \
+		tscc/scc_rt_islam \
 		"
 
 	BLACKLISTED=false
@@ -150,19 +150,25 @@ while IFS= read -r GRAPH_ID; do
 		mkdir -p "out/graphs/$GRAPH_CATEGORY"
 
 		# extract the graph file
-		unzip -j "$TMPFILE" "$GRAPH_FILE" -d "out/graphs/$GRAPH_CATEGORY"
+		unzip -j "$TMPFILE" "$GRAPH_FILE" -d "out/graphs/$GRAPH_CATEGORY" >/dev/null 2>&1
+
+		# get the graph path
+		GRAPH_PATH="out/graphs/$GRAPH_CATEGORY/$(basename $GRAPH_FILE)"
+
+		# set the file permissions on the graph file
+		chmod 644 "$GRAPH_PATH"
 
 		# apply some general post processing
 		case "$GRAPH_FILE" in
 		*.mtx)
 			# ensure two percent signs before MatrixMarket, as the
 			# Julia MatrixMarket package is pretty strict about it
-		  	sed -i '1s/^%MatrixMarket/%%MatrixMarket/' "$GRAPH_FILE"
+			sed -i '1s/^%MatrixMarket/%%MatrixMarket/' "$GRAPH_PATH"
 
 			# if a line begins with "%[0-9]" or "% [0-9]", remove the
 			# comment, as then this file has commented out the matrix
 			# dimensions, which is wrong.
-			sed -i 's/^% \?\([0-9]\)/\1/' "$GRAPH_FILE"
+			sed -i 's/^% \?\([0-9]\)/\1/' "$GRAPH_PATH"
 			;;
 		esac
 
@@ -170,15 +176,15 @@ while IFS= read -r GRAPH_ID; do
 		case "$GRAPH_FILE" in
 		*DSJC500-5.mtx)
 			# the entry count is doubled
-			sed -i '2s/^500 500 125248$/500 500 62624/' "$GRAPH_FILE"
+			sed -i '2s/^500 500 125248$/500 500 62624/' "$GRAPH_PATH"
 			;;
 		*p-hat500-1.mtx)
 			# the dimensions are messed up
-			sed -i '2s/^  500$/500 500 31569/' "$GRAPH_FILE"
+			sed -i '2s/^  500$/500 500 31569/' "$GRAPH_PATH"
 			;;
 		*mark3jac140.mtx)
 			# the dimensions are messed up
-			sed -i '2s/^64089 64089 399735$/4557 4557 19848/' "$GRAPH_FILE"
+			sed -i '2s/^64089 64089 399735$/4557 4557 19848/' "$GRAPH_PATH"
 			;;
 		esac
 
@@ -188,10 +194,10 @@ while IFS= read -r GRAPH_ID; do
 		# print the graph path to standard output as a witness
 		# we take the basename as GRAPH_FILE is a path, but unzip(1)
 		# with -j only yields the file in the end
-		printf "out/graphs/$GRAPH_CATEGORY/$(basename $GRAPH_FILE)\n"
+		printf "$GRAPH_PATH\n"
 
 		# also append the graph path to out/graph_files
-		printf "out/graphs/$GRAPH_CATEGORY/$(basename $GRAPH_FILE)\n" >> "out/graph_files"	
+		printf "$GRAPH_PATH\n" >> "out/graph_files"
 	else
 		# the file is too large, remove the temporary file and
 		# skip it
