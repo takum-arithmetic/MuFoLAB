@@ -1,0 +1,281 @@
+\documentclass[sigconf,natbib=false]{acmart}
+
+%%% language, encoding, font, date %%%
+\usepackage[american]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[american]{isodate}
+
+\usepackage{pgf, tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usepgfplotslibrary{statistics}
+\usetikzlibrary{external}
+\tikzexternalize[]
+
+\usepackage{amsmath}
+
+\usepackage{xcolor}
+\definecolor{posit}{HTML}{b02a2d}
+\definecolor{bfloat16}{HTML}{007900}
+\definecolor{takum}{HTML}{1f5dc2}
+\definecolor{float}{HTML}{636363}
+
+\begin{document}
+		\tikzsetnextfilename{08-values}
+    		\begin{tikzpicture}
+    			\begin{axis}[
+    				scaled y ticks={base 10:-2},
+    				ytick={1e-10,1e0,1e10,1e20},
+    				yticklabels={-10,0,10,20},
+    				extra y ticks={1e29,1e33},
+    				extra y tick labels={$\infty_\omega$,$\infty_\sigma$},
+    				grid=major,
+    				ymode=log,
+    				xmin=0,
+    				xmax=1,
+    				ylabel={$\log_{10}(\text{relative error})$},
+                    %ylabel shift=-0.2cm,
+    				scale only axis,
+    				width=\textwidth/2.4,
+    				height=\textwidth/4.8,
+    				xtick={0,0.25,0.5,0.75,1.0},
+    				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+    				point meta={x*100},
+    				legend style={nodes={scale=0.8, transform shape}},
+    				legend style={at={(0.95,0.5)},anchor=east},
+    				]
+    				\addplot[float,thick] table [col sep=comma, x=percent, y=Float8_4]{../../out/eigen_graph_misc_08/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{OFP8 E4M3}};
+    				\addplot[float,densely dashed] table [col sep=comma, x=percent, y=Float8_5]{../../out/eigen_graph_misc_08/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{OFP8 E5M2}};
+    				\addplot[takum] table [col sep=comma, x=percent, y=LinearTakum8]{../../out/eigen_graph_misc_08/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{takum8}};
+    				\addplot[posit,densely dotted,semithick] table [col sep=comma, x=percent, y=Posit8]{../../out/eigen_graph_misc_08/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{posit8}};
+    			\end{axis}
+    		\end{tikzpicture}
+		\tikzsetnextfilename{08-vectors}
+    		\begin{tikzpicture}
+    			\begin{axis}[
+    				scaled y ticks={base 10:-2},
+    				ytick={1e-15,1e0,1e10,1e20,1e30},
+    				yticklabels={-15,0,10,20,30},
+    				extra y ticks={1e41},
+    				extra y tick labels={$\infty_\omega$},
+    				grid=major,
+    				ymode=log,
+    				xmin=0,
+    				xmax=1,
+    				%ylabel={$\log_{10}(\text{relative error})$},
+                    %ylabel shift=-0.2cm,
+    				scale only axis,
+    				width=\textwidth/2.4,
+    				height=\textwidth/4.8,
+    				xtick={0,0.25,0.5,0.75,1.0},
+    				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+    				point meta={x*100},
+    				legend style={nodes={scale=0.8, transform shape}},
+    				legend style={at={(0.95,0.5)},anchor=east},
+    				]
+    				\addplot[float,thick] table [col sep=comma, x=percent, y=Float8_4]{../../out/eigen_graph_misc_08/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{OFP8 E4M3}};
+    				\addplot[float,densely dashed] table [col sep=comma, x=percent, y=Float8_5]{../../out/eigen_graph_misc_08/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{OFP8 E5M2}};
+    				\addplot[takum] table [col sep=comma, x=percent, y=LinearTakum8]{../../out/eigen_graph_misc_08/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{takum8}};
+    				\addplot[posit,densely dotted,semithick] table [col sep=comma, x=percent, y=Posit8]{../../out/eigen_graph_misc_08/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{posit8}};
+    			\end{axis}
+    		\end{tikzpicture}
+   		\tikzsetnextfilename{16-values}
+    		\begin{tikzpicture}
+    			\begin{axis}[
+    				scaled y ticks={base 10:-2},
+    				ytick={1e-40,1e-20,1e0,1e20},
+    				yticklabels={-5,0,10,20},
+    				extra y ticks={1e30,1e38},
+    				extra y tick labels={$\infty_\omega$,$\infty_\sigma$},
+    				grid=major,
+    				ymode=log,
+    				xmin=0,
+    				xmax=1,
+    				ylabel={$\log_{10}(\text{relative error})$},
+                    %ylabel shift=-0.2cm,
+    				scale only axis,
+    				width=\textwidth/2.4,
+    				height=\textwidth/4.8,
+    				xtick={0,0.25,0.5,0.75,1.0},
+    				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+    				point meta={x*100},
+    				legend style={nodes={scale=0.8, transform shape}},
+    				legend style={at={(0.95,0.05)},anchor=south east},
+    				]
+    				\addplot[float,thick] table [col sep=comma, x=percent, y=Float16]{../../out/eigen_graph_misc_16/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{float16}};
+    				\addplot[takum] table [col sep=comma, x=percent, y=LinearTakum16]{../../out/eigen_graph_misc_16/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{takum16}};
+    				\addplot[posit,densely dotted,semithick] table [col sep=comma, x=percent, y=Posit16]{../../out/eigen_graph_misc_16/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{posit16}};
+    				\addplot[bfloat16,densely dashed] table [col sep=comma, x=percent, y=BFloat16]{../../out/eigen_graph_misc_16/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{bfloat16}};
+    			\end{axis}
+    		\end{tikzpicture}
+   		\tikzsetnextfilename{16-vectors}
+    		\begin{tikzpicture}
+    			\begin{axis}[
+    				scaled y ticks={base 10:-2},
+    				ytick={1e-15,1e0,1e10,1e20,1e30,1e40},
+    				yticklabels={-15,0,10,20,30,40},
+    				extra y ticks={1e44},
+    				extra y tick labels={$\infty_\omega$},
+    				grid=major,
+    				ymode=log,
+    				xmin=0,
+    				xmax=1,
+    				%ylabel={$\log_{10}(\text{relative error})$},
+                    %ylabel shift=-0.2cm,
+    				scale only axis,
+     				width=\textwidth/2.4,
+     				height=\textwidth/4.8,
+    				xtick={0,0.25,0.5,0.75,1.0},
+    				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+    				point meta={x*100},
+    				legend style={nodes={scale=0.8, transform shape}},
+    				legend style={at={(0.05,0.75)},anchor=west},
+    				]
+    				\addplot[float,thick] table [col sep=comma, x=percent, y=Float16]{../../out/eigen_graph_misc_16/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{float16}};
+    				\addplot[takum] table [col sep=comma, x=percent, y=LinearTakum16]{../../out/eigen_graph_misc_16/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{takum16}};
+    				\addplot[posit,densely dotted,semithick] table [col sep=comma, x=percent, y=Posit16]{../../out/eigen_graph_misc_16/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{posit16}};
+    				\addplot[bfloat16,densely dashed] table [col sep=comma, x=percent, y=BFloat16]{../../out/eigen_graph_misc_16/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{bfloat16}};
+    			\end{axis}
+    		\end{tikzpicture}
+   		\tikzsetnextfilename{32-values}
+    		\begin{tikzpicture}
+    			\begin{axis}[
+    				scaled y ticks={base 10:-2},
+    				ytick={1e-65,1e-40,1e-20,1e0,1e20},
+    				yticklabels={-65,-40,-20,0,20},
+    				extra y ticks={1e29,1e37},
+    				extra y tick labels={$\infty_\omega$,$\infty_\sigma$},
+    				grid=major,
+    				ymode=log,
+    				xmin=0,
+    				xmax=1,
+    				ylabel={$\log_{10}(\text{relative error})$},
+                    %ylabel shift=-0.2cm,
+    				scale only axis,
+    				width=\textwidth/2.4,
+    				height=\textwidth/4.8,
+    				xtick={0,0.25,0.5,0.75,1.0},
+    				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+    				point meta={x*100},
+    				legend style={nodes={scale=0.8, transform shape}},
+    				legend style={at={(0.05,0.95)},anchor=north west},
+    				]
+    				\addplot[float,thick] table [col sep=comma, x=percent, y=Float32]{../../out/eigen_graph_misc_32/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{float32}};
+    				\addplot[takum] table [col sep=comma, x=percent, y=LinearTakum32]{../../out/eigen_graph_misc_32/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{takum32}};
+    				\addplot[posit,densely dotted,semithick] table [col sep=comma, x=percent, y=Posit32]{../../out/eigen_graph_misc_32/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{posit32}};
+    			\end{axis}
+    		\end{tikzpicture}
+   		\tikzsetnextfilename{32-vectors}
+    		\begin{tikzpicture}
+    			\begin{axis}[
+    				scaled y ticks={base 10:-2},
+    				ytick={1e-30,1e-20,1e0,1e20,1e40},
+    				yticklabels={-30,-20,0,20,40},
+    				extra y ticks={1e45},
+    				extra y tick labels={$\infty_\omega$},
+    				grid=major,
+    				ymode=log,
+    				xmin=0,
+    				xmax=1,
+    				%ylabel={$\log_{10}(\text{relative error})$},
+                    %ylabel shift=-0.2cm,
+    				scale only axis,
+    				width=\textwidth/2.4,
+    				height=\textwidth/4.8,
+    				xtick={0,0.25,0.5,0.75,1.0},
+    				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+    				point meta={x*100},
+    				legend style={nodes={scale=0.8, transform shape}},
+    				legend style={at={(0.05,0.95)},anchor=north west},
+    				]
+    				\addplot[float,thick] table [col sep=comma, x=percent, y=Float32]{../../out/eigen_graph_misc_32/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{float32}};
+    				\addplot[takum] table [col sep=comma, x=percent, y=LinearTakum32]{../../out/eigen_graph_misc_32/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{takum32}};
+    				\addplot[posit,densely dotted,semithick] table [col sep=comma, x=percent, y=Posit32]{../../out/eigen_graph_misc_32/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{posit32}};
+    			\end{axis}
+    		\end{tikzpicture}
+   		\tikzsetnextfilename{64-values}
+    		\begin{tikzpicture}
+    			\begin{axis}[
+    				scaled y ticks={base 10:-2},
+    				ytick={1e-60,1e-40,1e-20,1e0,1e20},
+    				yticklabels={-60,-40,-20,0,20},
+    				extra y ticks={1e29,1e37},
+    				extra y tick labels={$\infty_\omega$,$\infty_\sigma$},
+    				grid=major,
+    				ymode=log,
+    				xmin=0,
+    				xmax=1,
+    				ylabel={$\log_{10}(\text{relative error})$},
+                    %ylabel shift=-0.2cm,
+    				scale only axis,
+    				width=\textwidth/2.4,
+    				height=\textwidth/4.8,
+    				xtick={0,0.25,0.5,0.75,1.0},
+    				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+    				point meta={x*100},
+    				legend style={nodes={scale=0.8, transform shape}},
+    				legend style={at={(0.05,0.95)},anchor=north west},
+    				]
+    				\addplot[float,thick] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_graph_misc_64/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{float64}};
+    				\addplot[takum] table [col sep=comma, x=percent, y=LinearTakum64]{../../out/eigen_graph_misc_64/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{takum64}};
+    				\addplot[posit,densely dotted,semithick] table [col sep=comma, x=percent, y=Posit64]{../../out/eigen_graph_misc_64/eigenvalues_relative_error.sorted.csv};
+    				    \addlegendentry{\texttt{posit64}};
+    			\end{axis}
+    		\end{tikzpicture}
+   		\tikzsetnextfilename{64-vectors}
+    		\begin{tikzpicture}
+    			\begin{axis}[
+    				scaled y ticks={base 10:-2},
+    				ytick={1e-20,1e0,1e20,1e40},
+    				yticklabels={-20,0,20,40},
+    				extra y ticks={1e46},
+    				extra y tick labels={$\infty_\omega$},
+    				grid=major,
+    				ymode=log,
+    				xmin=0,
+    				xmax=1,
+    				%ylabel={$\log_{10}(\text{relative error})$},
+                    ylabel shift=-0.2cm,
+    				scale only axis,
+    				width=\textwidth/2.4,
+    				height=\textwidth/4.8,
+    				xtick={0,0.25,0.5,0.75,1.0},
+    				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+    				point meta={x*100},
+    				legend style={nodes={scale=0.8, transform shape}},
+    				legend style={at={(0.05,0.95)},anchor=north west},
+    				]
+    				\addplot[float,thick] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_graph_misc_64/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{float64}};
+    				\addplot[takum] table [col sep=comma, x=percent, y=LinearTakum64]{../../out/eigen_graph_misc_64/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{takum64}};
+    				\addplot[posit,densely dotted,semithick] table [col sep=comma, x=percent, y=Posit64]{../../out/eigen_graph_misc_64/eigenvectors_relative_error.sorted.csv};
+    				    %\addlegendentry{\texttt{posit64}};
+    			\end{axis}
+    		\end{tikzpicture}
+\end{document}

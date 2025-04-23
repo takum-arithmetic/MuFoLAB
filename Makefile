@@ -70,8 +70,15 @@ GENERATOR =\
 	src/generate_stochastic_test_matrices\
 	src/sparse_matrix_condition_numbers\
 
+EIGEN_PLOTS =\
+	plots/eigen_general/eigen_general\
+	plots/eigen_graph_biological/eigen_graph_biological\
+	plots/eigen_graph_infrastructure/eigen_graph_infrastructure\
+	plots/eigen_graph_social/eigen_graph_social\
+	plots/eigen_graph_misc/eigen_graph_misc\
+
 all: $(EXPERIMENT:=.output_sorted)
-eigen: $(EXPERIMENT_EIGEN:=.output_sorted)
+eigen: $(EXPERIMENT_EIGEN:=.output_sorted) plots/eigen.pdf
 solve: $(EXPERIMENT_SOLVE:=.output_sorted)
 
 src/generate_full_test_matrices.output: src/generate_full_test_matrices.jl src/TestMatrices.jl config.mk Makefile
@@ -155,6 +162,12 @@ src/solve_mpir_posit_16_32_32.output_sorted: src/solve_mpir_posit_16_32_32.outpu
 src/solve_mpir_takum_16_32_32.output_sorted: src/solve_mpir_takum_16_32_32.output src/sort_csv.jl
 src/solve_qr.output_sorted: src/solve_qr.output src/sort_csv.jl
 
+plots/eigen_general/eigen_general.pdf: plots/eigen_general/eigen_general.tex src/eigen_general_08.output_sorted src/eigen_general_16.output_sorted src/eigen_general_32.output_sorted src/eigen_general_64.output_sorted
+plots/eigen_graph_biological/eigen_graph_biological.pdf: plots/eigen_graph_biological/eigen_graph_biological.tex src/eigen_graph_biological_08.output_sorted src/eigen_graph_biological_16.output_sorted src/eigen_graph_biological_32.output_sorted src/eigen_graph_biological_64.output_sorted
+plots/eigen_graph_infrastructure/eigen_graph_infrastructure.pdf: plots/eigen_graph_infrastructure/eigen_graph_infrastructure.tex src/eigen_graph_infrastructure_08.output_sorted src/eigen_graph_infrastructure_16.output_sorted src/eigen_graph_infrastructure_32.output_sorted src/eigen_graph_infrastructure_64.output_sorted
+plots/eigen_graph_social/eigen_graph_social.pdf: plots/eigen_graph_social/eigen_graph_social.tex src/eigen_graph_social_08.output_sorted src/eigen_graph_social_16.output_sorted src/eigen_graph_social_32.output_sorted src/eigen_graph_social_64.output_sorted
+plots/eigen_graph_misc/eigen_graph_misc.pdf: plots/eigen_graph_misc/eigen_graph_misc.tex src/eigen_graph_misc_08.output_sorted src/eigen_graph_misc_16.output_sorted src/eigen_graph_misc_32.output_sorted src/eigen_graph_misc_64.output_sorted
+
 .jl.format:
 	@# work around JuliaFormatter not supporting tabs for indentation
 	@# by unexpanding a very wide 16-blank-indent
@@ -176,6 +189,12 @@ src/solve_qr.output_sorted: src/solve_qr.output src/sort_csv.jl
 	@# into a .sorted.csv file, outputting another witness file
 	@# (.output_sorted) containing the file names
 	$(JULIA) $(JULIA_FLAGS) -- "src/sort_csv.jl" "$<" > "$@.temp" && mv -f "$@.temp" "$@"
+
+$(EIGEN_PLOTS:=.pdf):
+	latexmk -pdf -cd -shell-escape $(@:.pdf=.tex)
+
+plots/eigen.pdf: $(EIGEN_PLOTS:=.pdf)
+	latexmk -pdf -cd plots/eigen.tex
 
 clean:
 	@# use the output witnesses to clean up the output files, except

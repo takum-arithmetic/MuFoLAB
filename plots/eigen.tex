@@ -1,0 +1,174 @@
+\documentclass[a4,oneside]{scrbook}
+
+%%% language, encoding, font, date %%%
+\usepackage[american]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[american]{isodate}
+
+%%% math %%%
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{bm}
+
+%%% graphics, plots %%%
+\usepackage{graphicx}
+
+%%% misc %%%
+\usepackage{subfig}
+\usepackage[margin=2cm]{geometry}
+
+\begin{document}
+
+\begin{figure*}[tbp]
+	\begin{center}
+        \subfloat[8 bits]{
+			\includegraphics{eigen_graph_general/08-values}
+			\includegraphics{eigen_graph_general/08-vectors}
+        }\\
+        \subfloat[16 bits]{
+			\includegraphics{eigen_graph_general/16-values}
+			\includegraphics{eigen_graph_general/16-vectors}
+        }\\
+        \subfloat[32 bits]{
+			\includegraphics{eigen_graph_general/32-values}
+			\includegraphics{eigen_graph_general/32-vectors}
+        }\\
+        \subfloat[64 bits]{
+			\includegraphics{eigen_graph_general/64-values}
+			\includegraphics{eigen_graph_general/64-vectors}
+        }
+	\end{center}
+	\caption{
+        Cumulative error distribution of the relative errors of
+        the $10$ largest eigenvalues (left) and their corresponding eigenvectors (right)
+        of the general matrices computed using a range of machine number types.
+        The symbol $\infty_\omega$ denotes where the \textsc{Arnoldi}
+        method did not converge, $\infty_\sigma$ denotes where the dynamic
+        range of the matrix entries exceeded the target number type.
+	}
+	\label{fig:general}
+\end{figure*}
+
+\begin{figure*}[tbp]
+	\begin{center}
+        \subfloat[8 bits]{
+			\includegraphics{eigen_graph_biological/08-values}
+			\includegraphics{eigen_graph_biological/08-vectors}
+        }\\
+        \subfloat[16 bits]{
+			\includegraphics{eigen_graph_biological/16-values}
+			\includegraphics{eigen_graph_biological/16-vectors}
+        }\\
+        \subfloat[32 bits]{
+			\includegraphics{eigen_graph_biological/32-values}
+			\includegraphics{eigen_graph_biological/32-vectors}
+        }\\
+        \subfloat[64 bits]{
+			\includegraphics{eigen_graph_biological/64-values}
+			\includegraphics{eigen_graph_biological/64-vectors}
+        }
+	\end{center}
+	\caption{
+        Cumulative error distribution of the relative errors of
+        the $10$ largest eigenvalues (left) and their corresponding eigenvectors (right)
+        of the biological graph symmetrized, normalized Laplacian
+        matrices computed using a range of machine number types.
+        The symbol $\infty_\omega$ denotes where the \textsc{Arnoldi}
+        method did not converge.
+	}
+	\label{fig:biological}
+\end{figure*}
+
+\begin{figure*}[tbp]
+	\begin{center}
+        \subfloat[8 bits]{
+			\includegraphics{eigen_graph_infrastructure/08-values}
+			\includegraphics{eigen_graph_infrastructure/08-vectors}
+        }\\
+        \subfloat[16 bits]{
+			\includegraphics{eigen_graph_infrastructure/16-values}
+			\includegraphics{eigen_graph_infrastructure/16-vectors}
+        }\\
+        \subfloat[32 bits]{
+			\includegraphics{eigen_graph_infrastructure/32-values}
+			\includegraphics{eigen_graph_infrastructure/32-vectors}
+        }\\
+        \subfloat[64 bits]{
+			\includegraphics{eigen_graph_infrastructure/64-values}
+			\includegraphics{eigen_graph_infrastructure/64-vectors}
+        }
+	\end{center}
+	\caption{
+        Cumulative error distribution of the relative errors of
+        the $10$ largest eigenvalues (left) and their corresponding eigenvectors (right)
+        of the infrastructure graph symmetrized, normalized Laplacian
+        matrices computed using a range of machine number types.
+        The symbol $\infty_\omega$ denotes where the \textsc{Arnoldi}
+        method did not converge.
+	}
+	\label{fig:infrastructure}
+\end{figure*}
+
+\begin{figure*}[tbp]
+	\begin{center}
+        \subfloat[8 bits]{
+			\includegraphics{eigen_graph_social/08-values}
+			\includegraphics{eigen_graph_social/08-vectors}
+        }\\
+        \subfloat[16 bits]{
+			\includegraphics{eigen_graph_social/16-values}
+			\includegraphics{eigen_graph_social/16-vectors}
+        }\\
+        \subfloat[32 bits]{
+			\includegraphics{eigen_graph_social/32-values}
+			\includegraphics{eigen_graph_social/32-vectors}
+        }\\
+        \subfloat[64 bits]{
+			\includegraphics{eigen_graph_social/64-values}
+			\includegraphics{eigen_graph_social/64-vectors}
+        }
+	\end{center}
+	\caption{
+        Cumulative error distribution of the relative errors of
+        the $10$ largest eigenvalues (left) and their corresponding eigenvectors (right)
+        of the social graph symmetrized, normalized Laplacian
+        matrices computed using a range of machine number types.
+        The symbol $\infty_\omega$ denotes where the \textsc{Arnoldi}
+        method did not converge.
+	}
+	\label{fig:social}
+\end{figure*}
+
+\begin{figure*}[tbp]
+	\begin{center}
+        \subfloat[8 bits]{
+			\includegraphics{eigen_graph_misc/08-values}
+			\includegraphics{eigen_graph_misc/08-vectors}
+        }\\
+        \subfloat[16 bits]{
+			\includegraphics{eigen_graph_misc/16-values}
+			\includegraphics{eigen_graph_misc/16-vectors}
+        }\\
+        \subfloat[32 bits]{
+			\includegraphics{eigen_graph_misc/32-values}
+			\includegraphics{eigen_graph_misc/32-vectors}
+        }\\
+        \subfloat[64 bits]{
+			\includegraphics{eigen_graph_misc/64-values}
+			\includegraphics{eigen_graph_misc/64-vectors}
+        }
+	\end{center}
+	\caption{
+        Cumulative error distribution of the relative errors of
+        the $10$ largest eigenvalues (left) and their corresponding eigenvectors (right)
+        of the miscellaneous graph symmetrized, normalized Laplacian
+        matrices computed using a range of machine number types.
+        The symbol $\infty_\omega$ denotes where the \textsc{Arnoldi}
+        method did not converge, $\infty_\sigma$ denotes where the dynamic
+        range of the matrix entries exceeded the target number type.
+	}
+	\label{fig:misc}
+\end{figure*}
+
+\end{document}
