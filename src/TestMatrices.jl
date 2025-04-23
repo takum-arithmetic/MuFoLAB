@@ -151,10 +151,7 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 	test_matrices = load(array_file, "test_matrices")
 
 	# filter out the graphs that we want using our classification function
-	if type == :graph_biological ||
-	   type == :graph_social ||
-	   type == :graph_infrastructure ||
-	   type == :graph_misc
+	if type in [ :graph_biological :graph_infrastructure :graph_social :graph_misc ]
 		filter!(
 			tm -> (graph_get_type_from_name(tm.name) == type),
 			test_matrices,
@@ -168,18 +165,20 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 
 	# honour the request for reduced test data
 	if "--reduced-test-data" in ARGS
-		if type == :full || type == :graph
+		if type in [ :full :graph_biological :graph_infrastructure :graph_social :graph_misc ]
 			# obtain matrices with reasonable size
 			filter!(t -> (t.nnz in 1:10000), test_matrices)
 
 			# get the first 50
 			test_matrices = test_matrices[1:min(50, end)]
-		elseif type == :sparse
+		elseif type == :sparse || type == :stochastic
 			# obtain matrices with reasonable size
 			filter!(t -> (t.nnz in 1:10000), test_matrices)
 
 			# get the first 50
 			test_matrices = test_matrices[1:min(50, end)]
+		else
+			throw(ArgumentError("Unknown matrix category $(type)"))
 		end
 	end
 
