@@ -21,11 +21,26 @@ and eigenvectors have been added.
 
 ## Getting started
 
-You can automatically run the benchmarks via
+You can automatically run all benchmarks via
 
 ```sh
 make
 ```
+
+and specifically
+
+```sh
+make eigen
+```
+
+to run the eigenvalue benchmarks (and generate the plot file
+plots/eigen.pdf) and
+
+```sh
+make solve
+```
+
+to run the solver benchmarks respectively.
 
 Runtime parameters (thread count, datasets) can be controlled by editing
 `config.mk`.
