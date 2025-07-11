@@ -10,7 +10,7 @@ using MicroFloatingPoints
 Base.trunc(::Type{Integer}, f::BFloat16) = Base.trunc(Int, f)
 
 # define integer conversion for microfloats
-Integer(x::Floatmu{szE, szf}) where {szE, szf} = Integer(Float32(x))
+Base.Integer(x::Floatmu{szE, szf}) where {szE, szf} = Integer(Float32(x))
 
 # overwrite nameof for microfloats
 function Base.nameof(::Type{Floatmu{szE, szf}}) where {szE, szf}
