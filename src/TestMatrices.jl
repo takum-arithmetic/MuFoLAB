@@ -82,19 +82,19 @@ function graph_get_type_from_name(name::String)
 			"bn/",      # Brain Networks
 		],
 		:graph_social => [
-			"ca/",	   # Collaboration Networks
-			"cit/",	   # Citation Networks
-			"dynamic/",	   # Interaction/Recommendation Networks
-			"econ/",	   # Economic Networks
-			"email/",	   # E-Mail Networks
-			"ia/",	   # Interaction Networks
-			"proximity/",	   # Human Contact Network/Interaction
-			"rec/",	   # Recommender Networks
+			"ca/",   # Collaboration Networks
+			"cit/",   # Citation Networks
+			"dynamic/",   # Interaction/Recommendation Networks
+			"econ/",   # Economic Networks
+			"email/",   # E-Mail Networks
+			"ia/",   # Interaction Networks
+			"proximity/",	# Human Contact Network/Interaction
+			"rec/",   # Recommender Networks
 			"retweet_graphs/", # Retweet Networks
-			"rt/",	   # Retweet Networks
-			"soc/",	   # Social Networks
-			"socfb/",	   # Social Networks (Facebook)
-			"tscc/",	   # Temporal Reachability Graphs
+			"rt/",   # Retweet Networks
+			"soc/",   # Social Networks
+			"socfb/",   # Social Networks (Facebook)
+			"tscc/",   # Temporal Reachability Graphs
 		],
 		:graph_infrastructure => [
 			"inf/",     # Infrastructure Networks
@@ -151,7 +151,7 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 	test_matrices = load(array_file, "test_matrices")
 
 	# filter out the graphs that we want using our classification function
-	if type in [ :graph_biological :graph_infrastructure :graph_social :graph_misc ]
+	if type in [:graph_biological :graph_infrastructure :graph_social :graph_misc]
 		filter!(
 			tm -> (graph_get_type_from_name(tm.name) == type),
 			test_matrices,
@@ -165,7 +165,8 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 
 	# honour the request for reduced test data
 	if "--reduced-test-data" in ARGS
-		if type in [ :full :graph_biological :graph_infrastructure :graph_social :graph_misc ]
+		if type in
+		   [:full :graph_biological :graph_infrastructure :graph_social :graph_misc]
 			# obtain matrices with reasonable size
 			filter!(t -> (t.nnz in 1:10000), test_matrices)
 
@@ -178,7 +179,11 @@ function get_test_matrices(type::Symbol; filter_function::Union{Nothing, Functio
 			# get the first 50
 			test_matrices = test_matrices[1:min(50, end)]
 		else
-			throw(ArgumentError("Unknown matrix category $(type)"))
+			throw(
+				ArgumentError(
+					"Unknown matrix category $(type)",
+				),
+			)
 		end
 	end
 

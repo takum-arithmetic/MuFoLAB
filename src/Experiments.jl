@@ -720,10 +720,12 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 	# at the signs of the absolute largest entry of each eigenvector,
 	# and flipping the respective eigenvector when the entry is
 	# negative.
-	eigenvectors_exact = real.(decomposition.Q[
-		:,
-		1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
-	])
+	eigenvectors_exact = real.(
+		decomposition.Q[
+			:,
+			1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
+		],
+	)
 
 	# first determine the indices (this is a bit hacky and we mainly
 	# work around getting the index from CartesianIndex() objects
@@ -747,7 +749,9 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 
 	return EigenExperimentPreparation(;
 		start_vector_exact = start_vector_exact,
-		eigenvalues_exact = real.(decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)]),
+		eigenvalues_exact = real.(
+			decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)],
+		),
 		eigenvectors_exact = Matrix(
 			(
 				eigenvectors_exact' .*
@@ -815,14 +819,17 @@ function get_measurement(
 	# decomposition yields the eigenvectors directly.
 	# Crop them to the number of 'requested' eigenvalues and
 	# eigenvectors, as the process may yield more.
-	eigenvalues_approx =
-		real.(decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)])
+	eigenvalues_approx = real.(
+		decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)],
+	)
 
 	# The eigenvectors are the columns of Q, because A is symmetric.
-	eigenvectors_approx = real.(decomposition.Q[
-		:,
-		1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
-	])
+	eigenvectors_approx = real.(
+		decomposition.Q[
+			:,
+			1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
+		],
+	)
 
 	# Eigenvalues can be close to each other and there may be swaps
 	# in the eigenvectors, invalidating our results. What we do is
@@ -1012,7 +1019,7 @@ function get_eigenvalues(A::SparseMatrixCSC{Float64, Int64}, count::Int)
 	eigenvalues = real.(decomposition.eigenvalues[1:count])
 
 	# Sort the eigenvalues descendingly
-	sort!(eigenvalues, rev=true)
+	sort!(eigenvalues; rev = true)
 
 	return eigenvalues
 end
@@ -1027,7 +1034,7 @@ function normalized_minimum_eigengap(eigenvalues::Vector{Float128})
 	else
 		# get the minimum absolute gap (appending a zero to
 		# also get the last gap)
-		gaps = -diff(vcat(eigenvalues, [ zero(Float128) ]))
+		gaps = -diff(vcat(eigenvalues, [zero(Float128)]))
 
 		# the Matrix is symmetric, thus normal, so the absolute values
 		# of the eigenvalues are the singular values

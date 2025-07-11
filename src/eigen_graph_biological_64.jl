@@ -21,9 +21,7 @@ write_experiment_results(
 			number_types = [Float64, LinearTakum64, Posit64],
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_biological;
-				filter_function = t -> (
-					t.n >= 12
-				),
+				filter_function = t -> (t.n >= 12),
 			),
 		),
 	),

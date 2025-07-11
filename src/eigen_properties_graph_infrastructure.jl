@@ -11,12 +11,10 @@ write_experiment_results(
 	ExperimentResults(
 		Experiment(;
 			parameters = PropertiesExperimentParameters(),
-			number_types = [ Float64 ],
+			number_types = [Float64],
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_infrastructure;
-				filter_function = t -> (
-					t.n >= 12
-				),
+				filter_function = t -> (t.n >= 12),
 			),
 		),
 	),
