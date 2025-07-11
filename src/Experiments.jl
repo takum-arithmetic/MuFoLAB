@@ -690,12 +690,6 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 		v1 = start_vector_exact,
 	)
 
-	# verify that we converged and all eigenvalues are real (which
-	# should be, as A is symmetric)
-	if !isreal(decomposition.eigenvalues)
-		throw(ArgumentError("Eigenvalues are not real"))
-	end
-
 	if !history.converged
 		# Divergence in Float128 implies divergence in any smaller
 		# type. We return nothing and later check for it
@@ -726,10 +720,10 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 	# at the signs of the absolute largest entry of each eigenvector,
 	# and flipping the respective eigenvector when the entry is
 	# negative.
-	eigenvectors_exact = decomposition.Q[
+	eigenvectors_exact = real.(decomposition.Q[
 		:,
 		1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
-	]
+	])
 
 	# first determine the indices (this is a bit hacky and we mainly
 	# work around getting the index from CartesianIndex() objects
@@ -753,7 +747,7 @@ function get_preparation(parameters::EigenExperimentParameters, A::SparseMatrixC
 
 	return EigenExperimentPreparation(;
 		start_vector_exact = start_vector_exact,
-		eigenvalues_exact = decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)],
+		eigenvalues_exact = real.(decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)]),
 		eigenvectors_exact = Matrix(
 			(
 				eigenvectors_exact' .*
@@ -813,7 +807,7 @@ function get_measurement(
 	# verify that we converged and all eigenvalues are real (which
 	# should be, as A is symmetric); if we didn't converge we can
 	# assume that the matrix became singular
-	if !history.converged || !isreal(decomposition.eigenvalues)
+	if !history.converged
 		return MatrixSingular::MeasurementError
 	end
 
@@ -822,13 +816,13 @@ function get_measurement(
 	# Crop them to the number of 'requested' eigenvalues and
 	# eigenvectors, as the process may yield more.
 	eigenvalues_approx =
-		decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)]
+		real.(decomposition.eigenvalues[1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count)])
 
 	# The eigenvectors are the columns of Q, because A is symmetric.
-	eigenvectors_approx = decomposition.Q[
+	eigenvectors_approx = real.(decomposition.Q[
 		:,
 		1:(parameters.eigenvalue_count + parameters.eigenvalue_buffer_count),
-	]
+	])
 
 	# Eigenvalues can be close to each other and there may be swaps
 	# in the eigenvectors, invalidating our results. What we do is
@@ -1009,13 +1003,12 @@ function get_eigenvalues(A::SparseMatrixCSC{Float64, Int64}, count::Int)
 		v1 = start_vector_exact,
 	)
 
-	if !history.converged || !isreal(decomposition.eigenvalues)
+	if !history.converged
 		# did not converge, return a zero vector
 		return zeros(Float128, count)
 	end
 
-	# The eigenvalues are given directly, and we know they
-	# are real
+	# The eigenvalues are given directly
 	eigenvalues = real.(decomposition.eigenvalues[1:count])
 
 	# Sort the eigenvalues descendingly
