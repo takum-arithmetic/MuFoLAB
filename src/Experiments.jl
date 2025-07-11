@@ -41,7 +41,10 @@ export AbstractExperimentParameters,
 	EigenExperimentMeasurement,
 	ConversionExperimentParameters,
 	ConversionExperimentPreparation,
-	ConversionExperimentMeasurement
+	ConversionExperimentMeasurement,
+	PropertiesExperimentParameters,
+	PropertiesExperimentPreparation,
+	PropertiesExperimentMeasurement
 
 all_number_types = [
 	Floatmu{4, 3},
@@ -953,6 +956,103 @@ function get_measurement(
 		absolute_error,
 		relative_error,
 		logarithmic_relative_error,
+	)
+end
+
+# the property experiments determine the nnz and minimum relative
+# eigengap
+@kwdef struct PropertiesExperimentParameters <: AbstractExperimentParameters
+	# no parameters
+end
+
+@kwdef struct PropertiesExperimentPreparation <: AbstractExperimentPreparation
+	# no preparation
+end
+
+function get_preparation(
+	parameters::PropertiesExperimentParameters,
+	A::SparseMatrixCSC{Float64, Int64},
+)
+	return PropertiesExperimentPreparation()
+end
+
+struct PropertiesExperimentMeasurement <: AbstractExperimentMeasurement
+	nnz::Float128
+	minimum_relative_eigengap::Float128
+end
+
+function get_eigenvalues(A::SparseMatrixCSC{Float64, Int64}, count::Int)
+	# check if A is symmetric
+	if !issymmetric(A)
+		throw(ArgumentError("Input matrix is not symmetric"))
+	end
+
+	# limit count to the column count of A
+	count = min(count, size(A, 2))
+
+	# generate a pseudorandom Float128 start vector
+	start_vector_exact = get_pseudorandom_v(A)
+
+	# compute the exact eigenvalues and eigenvectors based on the
+	# number of them requested in the parameters. The tolerance
+	# is set to the limits of 128 bits.
+	#
+	# We use the ArnoldiMethod.jl package, as it implements the
+	# Arnoldi method with Krylov-Schur restart, which is superior
+	# to the ARPACK method of implictly-restarted deflation, which
+	# is mathematically equivalent but more complicated to implement.
+	decomposition, history = partialschur(
+		Float128.(A);
+		nev = count,
+		tol = 1e-20,
+		which = :LR,
+		v1 = start_vector_exact,
+	)
+
+	if !history.converged || !isreal(decomposition.eigenvalues)
+		# did not converge, return a zero vector
+		return zeros(Float128, count)
+	end
+
+	# The eigenvalues are given directly, and we know they
+	# are real
+	eigenvalues = real.(decomposition.eigenvalues[1:count])
+
+	# Sort the eigenvalues descendingly
+	sort!(eigenvalues, rev=true)
+
+	return eigenvalues
+end
+
+function normalized_minimum_eigengap(eigenvalues::Vector{Float128})
+	# truncate the values to the threshold
+	eigenvalues = eigenvalues[eigenvalues .> 1e-10]
+
+	if length(eigenvalues) == 0
+		# the spectrum is all zeros
+		return zero(Float128)
+	else
+		# get the minimum absolute gap (appending a zero to
+		# also get the last gap)
+		gaps = -diff(vcat(eigenvalues, [ zero(Float128) ]))
+
+		# the Matrix is symmetric, thus normal, so the absolute values
+		# of the eigenvalues are the singular values
+		maximum_singular_value = maximum(abs.(eigenvalues))
+
+		return minimum(gaps) / maximum_singular_value
+	end
+end
+
+function get_measurement(
+	parameters::PropertiesExperimentParameters,
+	::Type{T},
+	A::SparseMatrixCSC{Float64, Int64},
+	preparation::PropertiesExperimentPreparation,
+) where {T <: AbstractFloat}
+	return PropertiesExperimentMeasurement(
+		nnz(A),
+		normalized_minimum_eigengap(get_eigenvalues(A, 12)),
 	)
 end
 
