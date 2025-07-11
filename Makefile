@@ -193,7 +193,7 @@ plots/eigen_graph_misc/eigen_graph_misc.pdf: plots/eigen_graph_misc/eigen_graph_
 $(EIGEN_PLOTS:=.pdf):
 	latexmk -pdf -cd -shell-escape $(@:.pdf=.tex)
 
-plots/eigen.pdf: $(EIGEN_PLOTS:=.pdf)
+plots/eigen.pdf: plots/eigen.tex $(EIGEN_PLOTS:=.pdf)
 	latexmk -pdf -cd plots/eigen.tex
 
 clean:
