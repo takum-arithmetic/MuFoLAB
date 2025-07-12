@@ -979,7 +979,7 @@ end
 
 struct PropertiesExperimentMeasurement <: AbstractExperimentMeasurement
 	nnz::Float128
-	minimum_relative_eigengap::Float128
+	normalized_minimum_eigengap::Float128
 end
 
 function get_eigenvalues(A::SparseMatrixCSC{Float64, Int64}, count::Int)
