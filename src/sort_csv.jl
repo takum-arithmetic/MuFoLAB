@@ -43,7 +43,7 @@ function ReplacementValues(type_name::String, df::DataFrame)
 
 	# Remove all zero and non-finite values and write the rest in a vector
 	type_group_values = type_group_columns[isfinite.(
-		type_group_columns
+		type_group_columns,
 	) .&& .!iszero.(type_group_columns)]
 
 	# Return early if the collection is empty
@@ -112,6 +112,13 @@ function sort_csv(input_file_name::String)
 				zero = 1e-1,
 				negative_infinity = 1e3,
 				positive_infinity = 1e4,
+			)
+		elseif contains(input_file_name, "properties") &&
+		       contains(input_file_name, "normalized_minimum_eigengap")
+			replacement_values = ReplacementValues(;
+				zero = 1e-44,
+				negative_infinity = 1e0,
+				positive_infinity = 1e0,
 			)
 		else
 			replacement_values = ReplacementValues(
