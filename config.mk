@@ -6,4 +6,5 @@ JULIA_SCRIPT_FLAGS = #--reduced-test-data
 
 # tools
 JULIA = julia
+LATEXMK = latexmk
 SH = sh

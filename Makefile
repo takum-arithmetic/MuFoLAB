@@ -81,15 +81,16 @@ EIGEN_PLOTS =\
 	plots/eigen_graph_infrastructure/eigen_graph_infrastructure\
 	plots/eigen_graph_social/eigen_graph_social\
 	plots/eigen_graph_misc/eigen_graph_misc\
+	plots/eigen_properties/eigen_properties\
 
 all: $(EXPERIMENT:=.output_sorted)
 eigen: $(EXPERIMENT_EIGEN:=.output_sorted) plots/eigen.pdf
 solve: $(EXPERIMENT_SOLVE:=.output_sorted)
 
-src/generate_full_test_matrices.output: src/generate_full_test_matrices.jl src/TestMatrices.jl config.mk Makefile
-src/generate_graphs.output: src/generate_graphs.sh config.mk Makefile
-src/generate_graph_test_matrices.output: src/generate_graph_test_matrices.jl src/TestMatrices.jl src/generate_graphs.output config.mk Makefile
-src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl config.mk Makefile
+#src/generate_full_test_matrices.output: src/generate_full_test_matrices.jl src/TestMatrices.jl config.mk Makefile
+#src/generate_graphs.output: src/generate_graphs.sh config.mk Makefile
+#src/generate_graph_test_matrices.output: src/generate_graph_test_matrices.jl src/TestMatrices.jl src/generate_graphs.output config.mk Makefile
+#src/generate_sparse_test_matrices.output: src/generate_sparse_test_matrices.jl src/TestMatrices.jl config.mk Makefile
 src/generate_stochastic_test_matrices.output: src/generate_stochastic_test_matrices.jl src/TestMatrices.jl config.mk Makefile
 src/sparse_matrix_condition_numbers.output: src/sparse_matrix_condition_numbers.jl src/TestMatrices.jl config.mk Makefile
 
@@ -182,6 +183,7 @@ plots/eigen_graph_biological/eigen_graph_biological.pdf: plots/eigen_graph_biolo
 plots/eigen_graph_infrastructure/eigen_graph_infrastructure.pdf: plots/eigen_graph_infrastructure/eigen_graph_infrastructure.tex src/eigen_graph_infrastructure_08.output_sorted src/eigen_graph_infrastructure_16.output_sorted src/eigen_graph_infrastructure_32.output_sorted src/eigen_graph_infrastructure_64.output_sorted
 plots/eigen_graph_social/eigen_graph_social.pdf: plots/eigen_graph_social/eigen_graph_social.tex src/eigen_graph_social_08.output_sorted src/eigen_graph_social_16.output_sorted src/eigen_graph_social_32.output_sorted src/eigen_graph_social_64.output_sorted
 plots/eigen_graph_misc/eigen_graph_misc.pdf: plots/eigen_graph_misc/eigen_graph_misc.tex src/eigen_graph_misc_08.output_sorted src/eigen_graph_misc_16.output_sorted src/eigen_graph_misc_32.output_sorted src/eigen_graph_misc_64.output_sorted
+plots/eigen_properties/eigen_properties.pdf: plots/eigen_properties/eigen_properties.tex src/eigen_properties_general.output_sorted src/eigen_properties_graph_biological.output_sorted src/eigen_properties_graph_infrastructure.output_sorted src/eigen_properties_graph_social.output_sorted src/eigen_properties_graph_misc.output_sorted
 
 .jl.format:
 	@# work around JuliaFormatter not supporting tabs for indentation
@@ -206,10 +208,10 @@ plots/eigen_graph_misc/eigen_graph_misc.pdf: plots/eigen_graph_misc/eigen_graph_
 	$(JULIA) $(JULIA_FLAGS) -- "src/sort_csv.jl" "$<" > "$@.temp" && mv -f "$@.temp" "$@"
 
 $(EIGEN_PLOTS:=.pdf):
-	latexmk -pdf -cd -shell-escape $(@:.pdf=.tex)
+	$(LATEXMK) -pdf -cd -shell-escape $(@:.pdf=.tex)
 
 plots/eigen.pdf: plots/eigen.tex $(EIGEN_PLOTS:=.pdf)
-	latexmk -pdf -cd plots/eigen.tex
+	$(LATEXMK) -pdf -cd plots/eigen.tex
 
 clean:
 	@# use the output witnesses to clean up the output files, except
@@ -220,7 +222,7 @@ clean:
 	rm -f $(EXPERIMENT:=.output) $(EXPERIMENT:=.output.temp) $(EXPERIMENT:=.output_sorted) $(EXPERIMENT:=.output_sorted.temp)
 	rm -f $(COMMON:=.format) $(EXPERIMENT:=.format)
 	rm -f plots/eigen_*/08* plots/eigen_*/16* plots/eigen_*/32* plots/eigen_*/64* plots/eigen_*/*.auxlock
-	latexmk -C -cd $(EIGEN_PLOTS:=.tex) plots/eigen.tex
+	$(LATEXMK) -C -cd $(EIGEN_PLOTS:=.tex) plots/eigen.tex
 	@# remove empty folders in out/ recursively
 	find out/ -empty -type d -delete
 
