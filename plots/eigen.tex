@@ -22,6 +22,25 @@
 
 \begin{figure*}[tbp]
 	\begin{center}
+        \subfloat[non-zero entry counts]{
+			\includegraphics{eigen_properties/nnz}
+        }
+        \subfloat[normalized minimum eigengaps]{
+			\includegraphics{eigen_properties/normalized_minimum_eigengap}
+        }
+	\end{center}
+	\caption{
+		Overview of the test matrix properties. (a) Non-zero entry
+		counts, indicating the matrix scales. (b) Normalized
+		minimum eigengaps, serving as indicators of ill-conditioning
+		with respect to the \textsc{Arnoldi} method. The legend
+		applies to both subfigures.
+	}
+	\label{fig:properties}
+\end{figure*}
+
+\begin{figure*}[tbp]
+	\begin{center}
         \subfloat[8 bits]{
 			\includegraphics{eigen_graph_general/08-values}
 			\includegraphics{eigen_graph_general/08-vectors}

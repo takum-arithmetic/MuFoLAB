@@ -1,0 +1,99 @@
+\documentclass[sigconf,natbib=false]{acmart}
+
+%%% language, encoding, font, date %%%
+\usepackage[american]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[american]{isodate}
+
+\usepackage{pgf, tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usepgfplotslibrary{statistics}
+\usetikzlibrary{external}
+\tikzexternalize[]
+
+\usepackage{amsmath}
+
+% OKLCH L=0.5, C=0.12, H=(0chroma0,55,155,245,315)
+\usepackage{xcolor}
+\definecolor{general}{HTML}{636363}
+\definecolor{biological}{HTML}{984260}
+\definecolor{infrastructure}{HTML}{0b7643}
+\definecolor{social}{HTML}{0f68a2}
+\definecolor{miscellaneous}{HTML}{7d4b92}
+
+\begin{document}
+		\tikzsetnextfilename{nnz}
+		\begin{tikzpicture}
+			\begin{axis}[
+				scaled y ticks={base 10:-2},
+				ytick={1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e8},
+				yticklabels={0,1,2,3,4,5,6,8},
+				extra y ticks={1e-44},
+				extra y tick labels={$-\infty$},
+				grid=major,
+				ymode=log,
+				xmin=0,
+				xmax=1,
+				ymin=7,
+				ymax=2e6,
+				ylabel={$\log_{10}(\text{non-zero entry count})$},
+				%ylabel shift=-0.2cm,
+				scale only axis,
+				width=\textwidth/2.4,
+				height=\textwidth/4.8,
+				xtick={0,0.25,0.5,0.75,1.0},
+				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+				point meta={x*100},
+				legend style={nodes={scale=0.8, transform shape}},
+				legend style={at={(0.97,0.03)},anchor=south east},
+				]
+				\addplot[general] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_general/nnz.sorted.csv};
+				%\addlegendentry{General Matrices}
+				\addplot[biological,densely dashed] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_graph_biological/nnz.sorted.csv};
+				%\addlegendentry{Biological Graphs}
+				\addplot[infrastructure,densely dashdotted] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_graph_infrastructure/nnz.sorted.csv};
+				%\addlegendentry{Infrastructure Graphs}
+				\addplot[social,densely dashdotdotted] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_graph_social/nnz.sorted.csv};
+				%\addlegendentry{Social Graphs}
+				\addplot[miscellaneous,densely dotted] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_graph_misc/nnz.sorted.csv};
+				%\addlegendentry{Miscellaneous Graphs}
+			\end{axis}
+		\end{tikzpicture}
+		\tikzsetnextfilename{normalized_minimum_eigengap}
+		\begin{tikzpicture}
+			\begin{axis}[
+				scaled y ticks={base 10:-2},
+				ytick={1e-40,1e-30,1e-20,1e-10,1e0},
+				yticklabels={-40,-30,-20,-10, 0},
+				extra y ticks={1e-44},
+				extra y tick labels={$-\infty$},
+				grid=major,
+				ymode=log,
+				xmin=0,
+				xmax=1,
+				ylabel={$\log_{10}(\text{norm. min. eigengap})$},
+				%ylabel shift=-0.2cm,
+				scale only axis,
+				width=\textwidth/2.4,
+				height=\textwidth/4.8,
+				xtick={0,0.25,0.5,0.75,1.0},
+				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+				point meta={x*100},
+				legend style={nodes={scale=0.8, transform shape}},
+				legend style={at={(0.95,0.2)},anchor=south east},
+				]
+				\addplot[general] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_general/normalized_minimum_eigengap.sorted.csv};
+				\addlegendentry{General Matrices}
+				\addplot[biological,densely dashed] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_graph_biological/normalized_minimum_eigengap.sorted.csv};
+				\addlegendentry{Biological Graphs}
+				\addplot[infrastructure,densely dashdotted] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_graph_infrastructure/normalized_minimum_eigengap.sorted.csv};
+				\addlegendentry{Infrastructure Graphs}
+				\addplot[social,densely dashdotdotted] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_graph_social/normalized_minimum_eigengap.sorted.csv};
+				\addlegendentry{Social Graphs}
+				\addplot[miscellaneous,densely dotted] table [col sep=comma, x=percent, y=Float64]{../../out/eigen_properties_graph_misc/normalized_minimum_eigengap.sorted.csv};
+				\addlegendentry{Miscellaneous Graphs}
+			\end{axis}
+		\end{tikzpicture}
+\end{document}
