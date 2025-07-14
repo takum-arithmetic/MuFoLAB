@@ -122,7 +122,7 @@ let
 		)
 
 		# compute the normalised Laplacian
-		Lnorm = I - D_inv_sqrt * A * D_inv_sqrt
+		Lnorm = I - D_inv_sqrt * (A * D_inv_sqrt)
 
 		# enforce symmetry because of possible previous rounding
 		# errors
