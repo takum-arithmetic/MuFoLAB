@@ -26,10 +26,10 @@
     		\begin{tikzpicture}
     			\begin{axis}[
     				scaled y ticks={base 10:-2},
-    				ytick={1e-3,1e-1,1e0,1e1,1e2},
-    				yticklabels={-3,-1,0,1,2},
-    				extra y ticks={1e3},
-    				extra y tick labels={$\infty_\omega$},
+				ytick={1e-3,1e-1,1e0,1e1,1e2,1e3},
+				yticklabels={-3,-1,0,1,2,3},
+				extra y ticks={1e4},
+				extra y tick labels={$\infty_\sigma$},
     				grid=major,
     				ymode=log,
     				xmin=0,
@@ -42,8 +42,8 @@
     				xtick={0,0.25,0.5,0.75,1.0},
     				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
     				point meta={x*100},
-    				legend style={nodes={scale=0.8, transform shape}},
-    				legend style={at={(0.95,0.5)},anchor=east},
+				legend style={nodes={scale=0.8, transform shape}},
+				legend style={at={(0.05,0.5)},anchor=west},
     				]
     				\addplot[float,thick] table [col sep=comma, x=percent, y=Float8_4]{../../out/eigen_graph_infrastructure_08/eigenvalues_relative_error.sorted.csv};
     				    \addlegendentry{\texttt{OFP8 E4M3}};
@@ -59,10 +59,10 @@
     		\begin{tikzpicture}
     			\begin{axis}[
     				scaled y ticks={base 10:-2},
-    				ytick={1.58489,3.1623,5.6234,1e1,31.623},
-    				yticklabels={0.2,0.25,0.5,1,1.5},
-    				extra y ticks={1e2},
-    				extra y tick labels={$\infty_\omega$},
+				ytick={1.58489,3.1623,5.6234,1e1,31.623,1e2},
+				yticklabels={0.2,0.25,0.5,1,1.5,2},
+				extra y ticks={1e3},
+				extra y tick labels={$\infty_\sigma$},
     				grid=major,
     				ymode=log,
     				xmin=0,
@@ -92,10 +92,10 @@
     		\begin{tikzpicture}
     			\begin{axis}[
     				scaled y ticks={base 10:-2},
-    				ytick={1e-5,1e-3,1e-2,1e-1,1e0},
-    				yticklabels={-5,-3,-2,-1,0},
-    				extra y ticks={1e1},
-    				extra y tick labels={$\infty_\omega$},
+				ytick={1e-5,1e-3,1e-2,1e-1,1e0,1e1},
+				yticklabels={-5,-3,-2,-1,0,1},
+				extra y ticks={1e2},
+				extra y tick labels={$\infty_\sigma$},
     				grid=major,
     				ymode=log,
     				xmin=0,
@@ -109,7 +109,7 @@
     				xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
     				point meta={x*100},
     				legend style={nodes={scale=0.8, transform shape}},
-    				legend style={at={(0.95,0.05)},anchor=south east},
+				legend style={at={(0.05,0.95)},anchor=north west},
     				]
     				\addplot[float,thick] table [col sep=comma, x=percent, y=Float16]{../../out/eigen_graph_infrastructure_16/eigenvalues_relative_error.sorted.csv};
     				    \addlegendentry{\texttt{float16}};
@@ -128,7 +128,7 @@
     				ytick={0.31623,1e0,3.1623},
     				yticklabels={-0.5,0,0.5},
     				extra y ticks={1e1},
-    				extra y tick labels={$\infty_\omega$},
+				extra y tick labels={$\infty_\sigma$},
     				grid=major,
     				ymode=log,
     				xmin=0,
@@ -161,7 +161,7 @@
     				ytick={1e-10,1e-8,1e-6,1e-4,1e-2},
     				yticklabels={-10,-8,-6,-4,-2},
     				extra y ticks={1e-1},
-    				extra y tick labels={$\infty_\omega$},
+				extra y tick labels={$\infty_\sigma$},
     				grid=major,
     				ymode=log,
     				xmin=0,
@@ -192,7 +192,7 @@
     				ytick={1e-10,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0},
     				yticklabels={-10,-6,-5,-4,-3,-2,-1,0},
     				extra y ticks={1e1},
-    				extra y tick labels={$\infty_\omega$},
+				extra y tick labels={$\infty_\sigma$},
     				grid=major,
     				ymode=log,
     				xmin=0,
@@ -223,7 +223,7 @@
     				ytick={1e-16,1e-11,1e-6,1e-1},
     				yticklabels={-16,-11,-6,-1},
     				extra y ticks={1e1},
-    				extra y tick labels={$\infty_\omega$},
+    				extra y tick labels={$\infty_\sigma$},
     				grid=major,
     				ymode=log,
     				xmin=0,
@@ -254,7 +254,7 @@
     				ytick={1e-20,1e-15,1e-10,1e-5,1e0},
     				yticklabels={-20,-15,-10,-5,0},
     				extra y ticks={1e2},
-    				extra y tick labels={$\infty_\omega$},
+    				extra y tick labels={$\infty_\sigma$},
     				grid=major,
     				ymode=log,
     				xmin=0,
