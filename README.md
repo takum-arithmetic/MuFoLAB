@@ -19,9 +19,20 @@ Repository, yielding a test set of normalized, symmetrized graph
 Laplacians. Based on this, interfaces for the computation of eigenvalues
 and eigenvectors have been added.
 
-## Getting started
+## Setting up the environment
 
-This repository provides an optional docker shell environment that
+### Hardware Requirements
+
+The machine must support 80-bit extended precision floating-point types
+to properly simulate 64-bit tapered-precision arithmetic. This is the
+case for x86_64, but not for ARM or RISC-V. At least 32 GB of RAM and
+2 GB of storage (and an additional 1 GB if you are using the docker
+shell environment) are required (including the compressed artifact
+archive).
+
+### Docker
+
+This repository provides a recipe for a docker shell environment that
 gets automatically set up with all necessary dependencies. Simply run
 
 ```sh
@@ -29,10 +40,27 @@ gets automatically set up with all necessary dependencies. Simply run
 ```
 
 and you will be dropped in a shell of a docker container where the
-repository is mounted and the working directory. Any files added will
-be present in the repository and not restricted to the container, so
-after closing the shell, the container will be deleted and the output
-files present in the output folders.
+repository is mounted as the working directory. Any files changed or
+added in the container will persist after closing it, thus leaving
+the shell is not an issue.
+
+### Native
+
+Using docker is optional and you can also run everything natively. Just
+ensure that you have julia 1.11 or newer, TeX Live and latexmk installed.
+Before running any of the commands below, open a julia REPL with the
+`--project` flag within the repository folder and run the commands
+
+```julia
+using Pkg
+Pkg.instantiate()
+```
+
+to install all the necessary dependencies. All subsequent julia calls
+within MuFoLAB also use the `--project` flag; this way the installed
+dependencies are bound to this repository and not installed globally.
+
+## Getting started
 
 You can automatically run all benchmarks via
 
@@ -56,7 +84,11 @@ make solve
 to run the solver benchmarks respectively.
 
 Runtime parameters (thread count, datasets) can be controlled by editing
-`config.mk`.
+`config.mk`. Noteworthy here is the `--reduced-test-data` flag that can
+be uncommented and thus added to JULIA_SCRIPT_FLAGS. This reduces the
+test data insofar that, for instance, a full run for the eigenvalue
+benchmarks takes just an hour on a typical desktop computer; the full
+runs can take multiple days.
 
 ## Authors and License
 
