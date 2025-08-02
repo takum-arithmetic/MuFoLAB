@@ -87,6 +87,8 @@ all: $(EXPERIMENT:=.output_sorted)
 eigen: $(EXPERIMENT_EIGEN:=.output_sorted) plots/eigen.pdf
 solve: $(EXPERIMENT_SOLVE:=.output_sorted)
 
+# These generators are commented out as the data is now included in the repository;
+# otherwise there is little hope one could still run this in the more distant future.
 #src/generate_full_test_matrices.output: src/generate_full_test_matrices.jl src/TestMatrices.jl config.mk Makefile
 #src/generate_graphs.output: src/generate_graphs.sh config.mk Makefile
 #src/generate_graph_test_matrices.output: src/generate_graph_test_matrices.jl src/TestMatrices.jl src/generate_graphs.output config.mk Makefile
@@ -136,54 +138,54 @@ src/solve_mpir_posit_16_32_64.output: src/solve_mpir_posit_16_32_64.jl src/Exper
 src/solve_mpir_takum_16_32_64.output: src/solve_mpir_takum_16_32_64.jl src/Experiments.jl src/Float128Conversions.jl src/LU.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 src/solve_qr.output: src/solve_qr.jl src/Experiments.jl src/Float128Conversions.jl src/QR.jl src/TestMatrices.jl src/generate_sparse_test_matrices.output src/generate_full_test_matrices.output config.mk Makefile
 
-src/eigen_graph_biological_08.output_sorted: src/eigen_graph_biological_08.output src/sort_csv.jl
-src/eigen_graph_biological_16.output_sorted: src/eigen_graph_biological_16.output src/sort_csv.jl
-src/eigen_graph_biological_32.output_sorted: src/eigen_graph_biological_32.output src/sort_csv.jl
-src/eigen_graph_biological_64.output_sorted: src/eigen_graph_biological_64.output src/sort_csv.jl
-src/eigen_graph_social_08.output_sorted: src/eigen_graph_social_08.output src/sort_csv.jl
-src/eigen_graph_social_16.output_sorted: src/eigen_graph_social_16.output src/sort_csv.jl
-src/eigen_graph_social_32.output_sorted: src/eigen_graph_social_32.output src/sort_csv.jl
-src/eigen_graph_social_64.output_sorted: src/eigen_graph_social_64.output src/sort_csv.jl
-src/eigen_graph_infrastructure_08.output_sorted: src/eigen_graph_infrastructure_08.output src/sort_csv.jl
-src/eigen_graph_infrastructure_16.output_sorted: src/eigen_graph_infrastructure_16.output src/sort_csv.jl
-src/eigen_graph_infrastructure_32.output_sorted: src/eigen_graph_infrastructure_32.output src/sort_csv.jl
-src/eigen_graph_infrastructure_64.output_sorted: src/eigen_graph_infrastructure_64.output src/sort_csv.jl
-src/eigen_graph_misc_08.output_sorted: src/eigen_graph_misc_08.output src/sort_csv.jl
-src/eigen_graph_misc_16.output_sorted: src/eigen_graph_misc_16.output src/sort_csv.jl
-src/eigen_graph_misc_32.output_sorted: src/eigen_graph_misc_32.output src/sort_csv.jl
-src/eigen_graph_misc_64.output_sorted: src/eigen_graph_misc_64.output src/sort_csv.jl
-src/eigen_general_08.output_sorted: src/eigen_general_08.output src/sort_csv.jl
-src/eigen_general_16.output_sorted: src/eigen_general_16.output src/sort_csv.jl
-src/eigen_general_32.output_sorted: src/eigen_general_32.output src/sort_csv.jl
-src/eigen_general_64.output_sorted: src/eigen_general_64.output src/sort_csv.jl
-src/eigen_properties_general.output_sorted: src/eigen_properties_general.output src/sort_csv.jl
-src/eigen_properties_graph_biological.output_sorted: src/eigen_properties_graph_biological.output src/sort_csv.jl
-src/eigen_properties_graph_social.output_sorted: src/eigen_properties_graph_social.output src/sort_csv.jl
-src/eigen_properties_graph_infrastructure.output_sorted: src/eigen_properties_graph_infrastructure.output src/sort_csv.jl
-src/eigen_properties_graph_misc.output_sorted: src/eigen_properties_graph_misc.output src/sort_csv.jl
-src/convert.output_sorted: src/convert.output src/sort_csv.jl
-src/solve_gmres_ilu.output_sorted: src/solve_gmres_ilu.output src/sort_csv.jl
-src/solve_lu.output_sorted: src/solve_lu.output src/sort_csv.jl
-src/solve_mpir_float_08_16_32.output_sorted: src/solve_mpir_float_08_16_32.output src/sort_csv.jl
-src/solve_mpir_posit_08_16_32.output_sorted: src/solve_mpir_posit_08_16_32.output src/sort_csv.jl
-src/solve_mpir_takum_08_16_32.output_sorted: src/solve_mpir_takum_08_16_32.output src/sort_csv.jl
-src/solve_mpir_float_16_16_32.output_sorted: src/solve_mpir_float_16_16_32.output src/sort_csv.jl
-src/solve_mpir_posit_16_16_32.output_sorted: src/solve_mpir_posit_16_16_32.output src/sort_csv.jl
-src/solve_mpir_takum_16_16_32.output_sorted: src/solve_mpir_takum_16_16_32.output src/sort_csv.jl
-src/solve_mpir_float_16_32_64.output_sorted: src/solve_mpir_float_16_32_64.output src/sort_csv.jl
-src/solve_mpir_posit_16_32_64.output_sorted: src/solve_mpir_posit_16_32_64.output src/sort_csv.jl
-src/solve_mpir_takum_16_32_64.output_sorted: src/solve_mpir_takum_16_32_64.output src/sort_csv.jl
-src/solve_mpir_float_16_32_32.output_sorted: src/solve_mpir_float_16_32_32.output src/sort_csv.jl
-src/solve_mpir_posit_16_32_32.output_sorted: src/solve_mpir_posit_16_32_32.output src/sort_csv.jl
-src/solve_mpir_takum_16_32_32.output_sorted: src/solve_mpir_takum_16_32_32.output src/sort_csv.jl
-src/solve_qr.output_sorted: src/solve_qr.output src/sort_csv.jl
+src/eigen_graph_biological_08.output_sorted: src/eigen_graph_biological_08.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_biological_16.output_sorted: src/eigen_graph_biological_16.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_biological_32.output_sorted: src/eigen_graph_biological_32.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_biological_64.output_sorted: src/eigen_graph_biological_64.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_social_08.output_sorted: src/eigen_graph_social_08.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_social_16.output_sorted: src/eigen_graph_social_16.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_social_32.output_sorted: src/eigen_graph_social_32.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_social_64.output_sorted: src/eigen_graph_social_64.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_infrastructure_08.output_sorted: src/eigen_graph_infrastructure_08.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_infrastructure_16.output_sorted: src/eigen_graph_infrastructure_16.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_infrastructure_32.output_sorted: src/eigen_graph_infrastructure_32.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_infrastructure_64.output_sorted: src/eigen_graph_infrastructure_64.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_misc_08.output_sorted: src/eigen_graph_misc_08.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_misc_16.output_sorted: src/eigen_graph_misc_16.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_misc_32.output_sorted: src/eigen_graph_misc_32.output src/sort_csv.jl config.mk Makefile
+src/eigen_graph_misc_64.output_sorted: src/eigen_graph_misc_64.output src/sort_csv.jl config.mk Makefile
+src/eigen_general_08.output_sorted: src/eigen_general_08.output src/sort_csv.jl config.mk Makefile
+src/eigen_general_16.output_sorted: src/eigen_general_16.output src/sort_csv.jl config.mk Makefile
+src/eigen_general_32.output_sorted: src/eigen_general_32.output src/sort_csv.jl config.mk Makefile
+src/eigen_general_64.output_sorted: src/eigen_general_64.output src/sort_csv.jl config.mk Makefile
+src/eigen_properties_general.output_sorted: src/eigen_properties_general.output src/sort_csv.jl config.mk Makefile
+src/eigen_properties_graph_biological.output_sorted: src/eigen_properties_graph_biological.output src/sort_csv.jl config.mk Makefile
+src/eigen_properties_graph_social.output_sorted: src/eigen_properties_graph_social.output src/sort_csv.jl config.mk Makefile
+src/eigen_properties_graph_infrastructure.output_sorted: src/eigen_properties_graph_infrastructure.output src/sort_csv.jl config.mk Makefile
+src/eigen_properties_graph_misc.output_sorted: src/eigen_properties_graph_misc.output src/sort_csv.jl config.mk Makefile
+src/convert.output_sorted: src/convert.output src/sort_csv.jl config.mk Makefile
+src/solve_gmres_ilu.output_sorted: src/solve_gmres_ilu.output src/sort_csv.jl config.mk Makefile
+src/solve_lu.output_sorted: src/solve_lu.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_float_08_16_32.output_sorted: src/solve_mpir_float_08_16_32.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_posit_08_16_32.output_sorted: src/solve_mpir_posit_08_16_32.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_takum_08_16_32.output_sorted: src/solve_mpir_takum_08_16_32.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_float_16_16_32.output_sorted: src/solve_mpir_float_16_16_32.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_posit_16_16_32.output_sorted: src/solve_mpir_posit_16_16_32.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_takum_16_16_32.output_sorted: src/solve_mpir_takum_16_16_32.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_float_16_32_64.output_sorted: src/solve_mpir_float_16_32_64.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_posit_16_32_64.output_sorted: src/solve_mpir_posit_16_32_64.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_takum_16_32_64.output_sorted: src/solve_mpir_takum_16_32_64.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_float_16_32_32.output_sorted: src/solve_mpir_float_16_32_32.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_posit_16_32_32.output_sorted: src/solve_mpir_posit_16_32_32.output src/sort_csv.jl config.mk Makefile
+src/solve_mpir_takum_16_32_32.output_sorted: src/solve_mpir_takum_16_32_32.output src/sort_csv.jl config.mk Makefile
+src/solve_qr.output_sorted: src/solve_qr.output src/sort_csv.jl config.mk Makefile
 
-plots/eigen_general/eigen_general.pdf: plots/eigen_general/eigen_general.tex src/eigen_general_08.output_sorted src/eigen_general_16.output_sorted src/eigen_general_32.output_sorted src/eigen_general_64.output_sorted
-plots/eigen_graph_biological/eigen_graph_biological.pdf: plots/eigen_graph_biological/eigen_graph_biological.tex src/eigen_graph_biological_08.output_sorted src/eigen_graph_biological_16.output_sorted src/eigen_graph_biological_32.output_sorted src/eigen_graph_biological_64.output_sorted
-plots/eigen_graph_infrastructure/eigen_graph_infrastructure.pdf: plots/eigen_graph_infrastructure/eigen_graph_infrastructure.tex src/eigen_graph_infrastructure_08.output_sorted src/eigen_graph_infrastructure_16.output_sorted src/eigen_graph_infrastructure_32.output_sorted src/eigen_graph_infrastructure_64.output_sorted
-plots/eigen_graph_social/eigen_graph_social.pdf: plots/eigen_graph_social/eigen_graph_social.tex src/eigen_graph_social_08.output_sorted src/eigen_graph_social_16.output_sorted src/eigen_graph_social_32.output_sorted src/eigen_graph_social_64.output_sorted
-plots/eigen_graph_misc/eigen_graph_misc.pdf: plots/eigen_graph_misc/eigen_graph_misc.tex src/eigen_graph_misc_08.output_sorted src/eigen_graph_misc_16.output_sorted src/eigen_graph_misc_32.output_sorted src/eigen_graph_misc_64.output_sorted
-plots/eigen_properties/eigen_properties.pdf: plots/eigen_properties/eigen_properties.tex src/eigen_properties_general.output_sorted src/eigen_properties_graph_biological.output_sorted src/eigen_properties_graph_infrastructure.output_sorted src/eigen_properties_graph_social.output_sorted src/eigen_properties_graph_misc.output_sorted
+plots/eigen_general/eigen_general.pdf: plots/eigen_general/eigen_general.tex src/eigen_general_08.output_sorted src/eigen_general_16.output_sorted src/eigen_general_32.output_sorted src/eigen_general_64.output_sorted config.mk Makefile
+plots/eigen_graph_biological/eigen_graph_biological.pdf: plots/eigen_graph_biological/eigen_graph_biological.tex src/eigen_graph_biological_08.output_sorted src/eigen_graph_biological_16.output_sorted src/eigen_graph_biological_32.output_sorted src/eigen_graph_biological_64.output_sorted config.mk Makefile
+plots/eigen_graph_infrastructure/eigen_graph_infrastructure.pdf: plots/eigen_graph_infrastructure/eigen_graph_infrastructure.tex src/eigen_graph_infrastructure_08.output_sorted src/eigen_graph_infrastructure_16.output_sorted src/eigen_graph_infrastructure_32.output_sorted src/eigen_graph_infrastructure_64.output_sorted config.mk Makefile
+plots/eigen_graph_social/eigen_graph_social.pdf: plots/eigen_graph_social/eigen_graph_social.tex src/eigen_graph_social_08.output_sorted src/eigen_graph_social_16.output_sorted src/eigen_graph_social_32.output_sorted src/eigen_graph_social_64.output_sorted config.mk Makefile
+plots/eigen_graph_misc/eigen_graph_misc.pdf: plots/eigen_graph_misc/eigen_graph_misc.tex src/eigen_graph_misc_08.output_sorted src/eigen_graph_misc_16.output_sorted src/eigen_graph_misc_32.output_sorted src/eigen_graph_misc_64.output_sorted config.mk Makefile
+plots/eigen_properties/eigen_properties.pdf: plots/eigen_properties/eigen_properties.tex src/eigen_properties_general.output_sorted src/eigen_properties_graph_biological.output_sorted src/eigen_properties_graph_infrastructure.output_sorted src/eigen_properties_graph_social.output_sorted src/eigen_properties_graph_misc.output_sorted config.mk Makefile
 
 .jl.format:
 	@# work around JuliaFormatter not supporting tabs for indentation
