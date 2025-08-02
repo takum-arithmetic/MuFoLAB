@@ -21,6 +21,19 @@ and eigenvectors have been added.
 
 ## Getting started
 
+This repository provides an optional docker shell environment that
+gets automatically set up with all necessary dependencies. Simply run
+
+```sh
+./run_docker_shell.sh
+```
+
+and you will be dropped in a shell of a docker container where the
+repository is mounted and the working directory. Any files added will
+be present in the repository and not restricted to the container, so
+after closing the shell, the container will be deleted and the output
+files present in the output folders.
+
 You can automatically run all benchmarks via
 
 ```sh
