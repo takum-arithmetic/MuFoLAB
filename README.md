@@ -87,8 +87,8 @@ Runtime parameters (thread count, datasets) can be controlled by editing
 `config.mk`. Noteworthy here is the `--reduced-test-data` flag that can
 be uncommented and thus added to JULIA_SCRIPT_FLAGS. This reduces the
 test data insofar that, for instance, a full run for the eigenvalue
-benchmarks takes just an hour on a typical desktop computer; the full
-runs can take multiple days.
+benchmarks takes just an hour on a typical desktop computer. The full
+runs can take multiple days to complete.
 
 ## Authors and License
 
