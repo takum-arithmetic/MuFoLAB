@@ -22,7 +22,7 @@ write_experiment_results(
 			number_types = [
 				BFloat16,
 				Float16,
-				LinearTakum16,
+				Takum16,
 				Posit16,
 			],
 			test_matrices = TestMatrices.get_test_matrices(

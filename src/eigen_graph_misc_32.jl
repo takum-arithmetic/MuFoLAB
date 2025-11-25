@@ -18,7 +18,7 @@ write_experiment_results(
 				eigenvalue_buffer_count = 2,
 				tolerance = 1e-8,
 			),
-			number_types = [Float32, LinearTakum32, Posit32],
+			number_types = [Float32, Takum32, Posit32],
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_misc;
 				filter_function = t -> (t.n >= 12),

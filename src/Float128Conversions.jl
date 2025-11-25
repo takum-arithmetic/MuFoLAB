@@ -180,12 +180,12 @@ Quadmath.Float128(t::Takum16) = Float128(Takum64(t))
 Quadmath.Float128(t::Takum32) = Float128(Takum64(t))
 
 # do similarly for linear takums
-function Takums.LinearTakum64(x::Float128)
+function Takums.Takum64(x::Float128)
 	# catch special cases early on
 	if !isfinite(x)
-		return NaRLinearTakum64
+		return NaRTakum64
 	elseif iszero(x)
-		return zero(LinearTakum64)
+		return zero(Takum64)
 	end
 
 	# We can now assume that x has the regular form
@@ -281,40 +281,40 @@ function Takums.LinearTakum64(x::Float128)
 
 	# round to 64-bit, adhering to proper saturation
 	t64 = reinterpret(
-		LinearTakum64,
+		Takum64,
 		UInt64(t128 >> 64) + UInt64((t128 & (UInt128(1) << 63)) >> 63),
 	)
 
 	if (iszero(t64) && !iszero(x))
 		if x < 0
 			# overflow to 0
-			t64 = reinterpret(LinearTakum64, Int64(-1))
+			t64 = reinterpret(Takum64, Int64(-1))
 		else
 			# underflow to 0
-			t64 = reinterpret(LinearTakum64, Int64(1))
+			t64 = reinterpret(Takum64, Int64(1))
 		end
 	elseif (isnan(t64))
 		if x < 0
 			# underflow to NaR
-			t64 = reinterpret(LinearTakum64, typemin(Int64) + 1)
+			t64 = reinterpret(Takum64, typemin(Int64) + 1)
 		else
 			# overflow to NaR
-			t64 = reinterpret(LinearTakum64, typemax(Int64))
+			t64 = reinterpret(Takum64, typemax(Int64))
 		end
 	end
 
 	return t64
 end
 
-Takums.LinearTakum8(x::Float128) = LinearTakum8(LinearTakum64(x))
-Takums.LinearTakum16(x::Float128) = LinearTakum16(LinearTakum64(x))
-Takums.LinearTakum32(x::Float128) = LinearTakum32(LinearTakum64(x))
+Takums.Takum8(x::Float128) = Takum8(Takum64(x))
+Takums.Takum16(x::Float128) = Takum16(Takum64(x))
+Takums.Takum32(x::Float128) = Takum32(Takum64(x))
 
-function Quadmath.Float128(t::LinearTakum64)
+function Quadmath.Float128(t::Takum64)
 	# catch special cases
 	if isnan(t)
 		return Float128(NaN)
-	elseif t == zero(LinearTakum64)
+	elseif t == zero(Takum64)
 		return zero(Float128)
 	end
 
@@ -353,9 +353,9 @@ function Quadmath.Float128(t::LinearTakum64)
 	return (Float128(1 - 3 * S) + f) * Float128(2.0)^e
 end
 
-Quadmath.Float128(t::LinearTakum8) = Float128(LinearTakum64(t))
-Quadmath.Float128(t::LinearTakum16) = Float128(LinearTakum64(t))
-Quadmath.Float128(t::LinearTakum32) = Float128(LinearTakum64(t))
+Quadmath.Float128(t::Takum8) = Float128(Takum64(t))
+Quadmath.Float128(t::Takum16) = Float128(Takum64(t))
+Quadmath.Float128(t::Takum32) = Float128(Takum64(t))
 
 # posit
 function Posits.Posit64(x::Float128)

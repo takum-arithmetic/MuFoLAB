@@ -23,7 +23,7 @@ write_experiment_results(
 			number_types = [
 				Floatmu{4, 3},
 				Floatmu{5, 2},
-				LinearTakum8,
+				Takum8,
 				Posit8,
 			],
 			test_matrices = TestMatrices.get_test_matrices(

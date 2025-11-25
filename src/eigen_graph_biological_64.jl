@@ -18,7 +18,7 @@ write_experiment_results(
 				eigenvalue_buffer_count = 2,
 				tolerance = 1e-12,
 			),
-			number_types = [Float64, LinearTakum64, Posit64],
+			number_types = [Float64, Takum64, Posit64],
 			test_matrices = TestMatrices.get_test_matrices(
 				:graph_biological;
 				filter_function = t -> (t.n >= 12),
